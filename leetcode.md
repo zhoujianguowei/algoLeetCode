@@ -2567,7 +2567,7 @@ prefixSumCount.put(currSum, prefixSumCount.getOrDefault(currSum, 0) + 1);
 
 时间复杂度：$O(\log^2{n})$，其中 $n$ 是完全二叉树的节点数。
 
-首先需要 $O(h)​$ 的时间得到完全二叉树的最大层数，其中 $h​$ 是完全二叉树的最大层数。
+首先需要 $O(h)$ 的时间得到完全二叉树的最大层数，其中 $h$ 是完全二叉树的最大层数。
 使用二分查找确定节点个数时，需要查找的次数为 $O(\log^ {2^{h}})$=$O(h)$，每次查找需要遍历从根节点开始的一条长度为 $h$ 的路径，需要 $O(h)$ 的时间，因此二分查找的总时间复杂度是 $O(h^2)$。由于完全二叉树满足 $2^h \le n < 2^{h+1}$ ，因此有 $O(h)=O(logn)$，$O(h^2)=O(\log^2 n)$。
 
 
@@ -7821,7 +7821,7 @@ class FooBar {
 
 **我的解法**
 
-本质上是线程的同步问题，一个打印foo线程，一个打印bar线程。首先要确保二者的启动顺序，即确保foo线程在bar线程之前启动。没有通过加锁的方式实现，而是通过设置一个volatile类型的成员变量来做控制。然后是线程交替打印，通过$[Math Processing Error]Object.wait()$和$[Math Processing Error]Object.notify()$方法控制，注意一点，当打印最后一个字符的时候不要在调用$[Math Processing Error]wait()$方法了
+本质上是线程的同步问题，一个打印foo线程，一个打印bar线程。首先要确保二者的启动顺序，即确保foo线程在bar线程之前启动。没有通过加锁的方式实现，而是通过设置一个volatile类型的成员变量来做控制。然后是线程交替打印，通过$Object.wait()$和$Object.notify()$方法控制，注意一点，当打印最后一个字符的时候不要在调用$wait()$方法了
 
 ~~~java
 class FooBar {
@@ -7962,7 +7962,7 @@ class FooBar {
 
 **dp实现，算法时间复杂度$O(n^2)$**
 
-定义$ans[i]$表示的是第$[Math Processing Error]i$个索引下标能够到达最后一个索引，注意初始化最后一个索引该值要设置为true，即$ans[n-1]=true$。
+定义$ans[i]$表示的是第$i$个索引下标能够到达最后一个索引，注意初始化最后一个索引该值要设置为true，即$ans[n-1]=true$。
 
 ~~~java
  public boolean canJump(int[] nums) {
@@ -8038,6 +8038,824 @@ $[3, 2, 1, 0, 4]$
 
 
 
+#### [61. 旋转链表](https://leetcode-cn.com/problems/rotate-list/)
+
+难度中等448收藏分享切换为英文接收动态反馈
+
+给定一个链表，旋转链表，将链表每个节点向右移动 *k *个位置，其中 *k *是非负数。
+
+**示例 1:**
+
+```
+输入: 1->2->3->4->5->NULL, k = 2
+输出: 4->5->1->2->3->NULL
+解释:
+向右旋转 1 步: 5->1->2->3->4->NULL
+向右旋转 2 步: 4->5->1->2->3->NULL
+
+```
+
+**示例 2:**
+
+```
+输入: 0->1->2->NULL, k = 4
+输出: 2->0->1->NULL
+解释:
+向右旋转 1 步: 2->0->1->NULL
+向右旋转 2 步: 1->2->0->NULL
+向右旋转 3 步: 0->1->2->NULL
+向右旋转 4 步: 2->0->1->NULL
+```
+
+通过次数121,662提交次数299,446
+
+**传统方法**
+
+由示例代码知道，要进行数组旋转关键在于找到单链表的$head,tail,n-k+1（索引从1开始）$个元素，然后将彼此进行串联。设链表总长度为$n$,
+
+那么实际旋转次数应该是$k\%n$。
+
+~~~java
+public ListNode rotateRight(ListNode head, int k) {
+        if(head==null||head.next==null){
+            return head;
+        }
+        //list length
+        int n=0;
+        //virtual head node
+        ListNode dummy=new ListNode();
+        dummy.next=head;
+        ListNode p=dummy;
+        while(p.next!=null){
+            p=p.next;
+            n++;
+        }
+        //p current point the tail node of single linked list
+        ListNode tail=p;
+        //real rotation
+        k=k%n;
+        if(k==0){
+            return head;
+        }
+        //search the k-n+1 th node ,where linked list is split
+        int i=0;
+        //search the k-n th node
+        p=dummy;
+        while(i<n-k){
+            p=p.next;
+            i++;
+        }
+        ListNode newHead=p.next;
+        tail.next=head;
+        p.next=null;
+        return newHead;
+    }
+~~~
+
+
+
+#### [1318. 或运算的最小翻转次数](https://leetcode-cn.com/problems/minimum-flips-to-make-a-or-b-equal-to-c/)
+
+难度中等28收藏分享切换为英文接收动态反馈
+
+给你三个正整数 `a`、`b` 和 `c`。
+
+你可以对 `a` 和 `b` 的二进制表示进行位翻转操作，返回能够使按位或运算  `a` OR `b` == `c` 成立的最小翻转次数。
+
+「位翻转操作」是指将一个数的二进制表示任何单个位上的 1 变成 0 或者 0 变成 1 。
+
+ 
+
+**示例 1：**
+
+![img](https://assets.leetcode-cn.com/aliyun-lc-upload/uploads/2020/01/11/sample_3_1676.png)
+
+```
+输入：a = 2, b = 6, c = 5
+输出：3
+解释：翻转后 a = 1 , b = 4 , c = 5 使得 a OR b == c
+```
+
+**示例 2：**
+
+```
+输入：a = 4, b = 2, c = 7
+输出：1
+```
+
+**示例 3：**
+
+```
+输入：a = 1, b = 2, c = 3
+输出：0
+```
+
+ 
+
+**提示：**
+
+- `1 <= a <= 10^9`
+- `1 <= b <= 10^9`
+- `1 <= c <= 10^9`
+
+通过次数4,773
+
+提交次数7,483
+
+**我的解答**
+
+我是采用传统的方法实现，$a、b、c$的二进制位转换本质上就是位运算的操作，每个位彼此之前其实是独立的。比如对于值$a=2,b=6,c=5$的数来说
+
+~~~sh
+a=0010
+b=0110
+c=0101
+~~~
+
+从高位到低位分别转换对应$00->0,01->1,11->0,00->1$，对应的转换次数分别是$0,0,2,1$。设置一个数组表示$a、b、c$相同二进制位对应的数需要的转换次数，比如$001对应的转换次数是1,011对应的转换次数是0,110对应的转换次数是2$。如此进行枚举（对应的是从高位到低位）。
+
+~~~java
+ public int minFlips(int a, int b, int c) {
+        //索引表示由abc的二进制位构成的十进制表示的转换次数，比如abc相同的位
+        //对应的值分别是1,0,0，那么只需要转换一次就行,a、b、c是从高位到低位
+        int[] bitFormat=new int[]{0,1,1,0,1,0,2,0};
+        String aStr=Integer.toBinaryString(a);
+        String bStr=Integer.toBinaryString(b);
+        String cStr=Integer.toBinaryString(c);
+        int result=0;
+        for(int i=aStr.length()-1,j=bStr.length()-1,k=cStr.length()-1;
+            i>=0||j>=0||k>=0;){
+            int num=0;
+            if(i>=0){
+                num+=4*(aStr.charAt(i)-'0');
+                i--;
+            }
+            if(j>=0){
+                num+=2*(bStr.charAt(j)-'0');
+                j--;
+            }
+            if(k>=0){
+                num+=cStr.charAt(k)-'0';
+                k--;
+            }
+            result+=bitFormat[num];
+        }
+        return result;
+    }
+~~~
+
+
+
+**官方解答：枚举+位运算**
+
+由于在或（$OR$）运算中，二进制表示的每一位都是独立的，即修改 $a 或 b 二进制表示中的第 i$ 位，只会影响$ a OR b 中第 i$ 位的值，因此我们可以依次枚举并考虑每一位。注意到 $a、b 和 c 均小于 10^9$，它们的二进制表示最多有 30 位（包含 31 个二进制位的数最小为 $2^{30} = 1073741824$，已经大于 10^9），因此我们只需要从低位到高位枚举这 30 位即可。
+
+设 a、b 和 c 二进制表示的第 i 位分别为 bit_a、bit_b 和 bit_c，根据 bit_c 的值，会有以下两种情况：
+
+若 bit_c 的值为 0，那么 bit_a 和 bit_b 必须都为 0，需要的翻转次数为 bit_a + bit_b；
+
+若 bit_c 的值为 1，那么 bit_a 和 bit_b 中至少有一个为 1，只有当它们都为 0 时，才需要 1 次翻转；
+
+我们将每一位的翻转次数进行累加，在枚举完所有位之后，就得到了最小翻转次数。
+
+~~~c++
+ int minFlips(int a, int b, int c) {
+        int ans = 0;
+        for (int i = 0; i < 31; ++i) {
+            int bit_a = (a >> i) & 1;
+            int bit_b = (b >> i) & 1;
+            int bit_c = (c >> i) & 1;
+            if (bit_c == 0) {
+                ans += bit_a + bit_b;
+            }
+            else {
+                ans += (bit_a + bit_b == 0);
+            }
+        }
+        return ans;
+    }
+~~~
+
+
+
+#### [198. 打家劫舍](https://leetcode-cn.com/problems/house-robber/)
+
+难度中等1331收藏分享切换为英文接收动态反馈
+
+你是一个专业的小偷，计划偷窃沿街的房屋。每间房内都藏有一定的现金，影响你偷窃的唯一制约因素就是相邻的房屋装有相互连通的防盗系统，**如果两间相邻的房屋在同一晚上被小偷闯入，系统会自动报警**。
+
+给定一个代表每个房屋存放金额的非负整数数组，计算你 **不触动警报装置的情况下** ，一夜之内能够偷窃到的最高金额。
+
+ 
+
+**示例 1：**
+
+```
+输入：[1,2,3,1]
+输出：4
+解释：偷窃 1 号房屋 (金额 = 1) ，然后偷窃 3 号房屋 (金额 = 3)。
+     偷窃到的最高金额 = 1 + 3 = 4 。
+```
+
+**示例 2：**
+
+```
+输入：[2,7,9,3,1]
+输出：12
+解释：偷窃 1 号房屋 (金额 = 2), 偷窃 3 号房屋 (金额 = 9)，接着偷窃 5 号房屋 (金额 = 1)。
+     偷窃到的最高金额 = 2 + 9 + 1 = 12 。
+```
+
+ 
+
+**提示：**
+
+- `0 <= nums.length <= 100`
+- `0 <= nums[i] <= 400`
+
+通过次数256,817
+
+提交次数534,985
+
+**简单dp**
+
+简单的动态规划算法，降低空间复杂度，使用$O(C)$的空间
+
+~~~
+ public int rob(int[] nums) {
+        int n=nums.length;
+        int[] ans=new int[3];
+        if(n>0){
+            ans[0]=nums[0];
+        }
+        if(n>1){
+            ans[1]=Math.max(nums[0],nums[1]);
+        }
+        if(n<=2){
+            return ans[n-1];
+        }
+        for(int i=2;i<n;i++){
+            ans[2]=Math.max(nums[i]+ans[0],ans[1]);
+            ans[0]=ans[1];
+            ans[1]=ans[2];
+        }
+        return ans[2];
+    }
+~~~
+
+
+
+**官方版本**
+
+~~~java
+public int rob(int[] nums) {
+        if (nums == null || nums.length == 0) {
+            return 0;
+        }
+        int length = nums.length;
+        if (length == 1) {
+            return nums[0];
+        }
+        int first = nums[0], second = Math.max(nums[0], nums[1]);
+        for (int i = 2; i < length; i++) {
+            int temp = second;
+            second = Math.max(first + nums[i], second);
+            first = temp;
+        }
+        return second;
+    }
+~~~
+
+
+
+#### [24. 两两交换链表中的节点](https://leetcode-cn.com/problems/swap-nodes-in-pairs/)
+
+难度中等863收藏分享切换为英文接收动态反馈
+
+给定一个链表，两两交换其中相邻的节点，并返回交换后的链表。
+
+**你不能只是单纯的改变节点内部的值**，而是需要实际的进行节点交换。
+
+ 
+
+**示例 1：**
+
+![img](https://assets.leetcode.com/uploads/2020/10/03/swap_ex1.jpg)
+
+```
+输入：head = [1,2,3,4]
+输出：[2,1,4,3]
+```
+
+**示例 2：**
+
+```
+输入：head = []
+输出：[]
+```
+
+**示例 3：**
+
+```
+输入：head = [1]
+输出：[1]
+```
+
+ 
+
+**提示：**
+
+- 链表中节点的数目在范围 `[0, 100]` 内
+- `0 <= Node.val <= 100`
+
+ 
+
+**进阶：**你能在不修改链表节点值的情况下解决这个问题吗?（也就是说，仅修改节点本身。）
+
+通过次数235,749
+
+提交次数340,004
+
+**递归解法**
+
+~~~java
+ public ListNode swapPairs(ListNode head) {
+        //递归实现，比较简单
+        if(head==null||head.next==null){
+            return head;
+        }
+        ListNode cur=head,next=head.next;
+        ListNode swapNode=swapPairs(next.next);
+        next.next=cur;
+        cur.next=swapNode;
+        return next;
+    }
+~~~
+
+
+
+**迭代算法**
+
+~~~java
+public ListNode swapPairs(ListNode head) {
+        ListNode dummyHead = new ListNode(0);
+        dummyHead.next = head;
+        ListNode temp = dummyHead;
+        while (temp.next != null && temp.next.next != null) {
+            ListNode node1 = temp.next;
+            ListNode node2 = temp.next.next;
+            temp.next = node2;
+            node1.next = node2.next;
+            node2.next = node1;
+            temp = node1;
+        }
+        return dummyHead.next;
+    }
+~~~
+
+
+
+#### [394. 字符串解码](https://leetcode-cn.com/problems/decode-string/)
+
+难度中等701收藏分享切换为英文接收动态反馈
+
+给定一个经过编码的字符串，返回它解码后的字符串。
+
+编码规则为: `k[encoded_string]`，表示其中方括号内部的 *encoded_string* 正好重复 *k* 次。注意 *k* 保证为正整数。
+
+你可以认为输入字符串总是有效的；输入字符串中没有额外的空格，且输入的方括号总是符合格式要求的。
+
+此外，你可以认为原始数据不包含数字，所有的数字只表示重复的次数 *k* ，例如不会出现像 `3a` 或 `2[4]` 的输入。
+
+ 
+
+**示例 1：**
+
+```
+输入：s = "3[a]2[bc]"
+输出："aaabcbc"
+```
+
+**示例 2：**
+
+```
+输入：s = "3[a2[c]]"
+输出："accaccacc"
+```
+
+**示例 3：**
+
+```
+输入：s = "2[abc]3[cd]ef"
+输出："abcabccdcdcdef"
+```
+
+**示例 4：**
+
+```
+输入：s = "abc3[cd]xyz"
+输出："abccdcdcdxyz"
+```
+
+通过次数85,248
+
+提交次数157,092
+
+**递归实现**
+
+题目本身不难，难点在于考虑问题的全面性，递归过程是如果碰到了嵌套字符串，形如$k[encoded_string]$这种形式，就进行递归调用，遍历字符串找到该嵌套字符串的起点和终点，可以采用栈的方式实现。
+
+~~~
+public String decodeString(String s,int start,int end){
+        StringBuilder result=new StringBuilder();
+        int leftBracketCount=0;
+        for(int i=start;i<=end;i++){
+            char ch=s.charAt(i);
+            if(Character.isDigit(ch)){
+                int left=0,right=0;
+                int sum=ch-'0';
+                i++;
+                ch=s.charAt(i);
+                while(Character.isDigit(ch)){
+                    sum=sum*10+ch-'0';
+                    i++;
+                    ch=s.charAt(i);
+                }
+                //trace to end,i currently point [
+                leftBracketCount++;
+                i++;
+                left=i;
+                while(leftBracketCount>0){
+                    ch=s.charAt(i);
+                    if(ch=='['){
+                        leftBracketCount++;
+                    }
+                    if(ch==']'){
+                        leftBracketCount--;
+                    }
+                    i++;
+                }
+                //i currently point the next index of ] ,so need substract one
+                i--;
+                right=i-1;
+                for(int j=0;j<sum;j++){
+                    result.append(decodeString(s,left,right));
+                }
+            }else{
+                result.append(ch);
+            }
+        }
+        return result.toString();
+    }
+    public String decodeString(String s) {
+        return decodeString(s,0,s.length()-1);
+    }
+~~~
+
+
+
+**辅助栈法**
+
+本题难点在于括号内嵌套括号，需要从内向外生成与拼接字符串，这与栈的先入后出特性对应。
+
+**算法流程：**
+
+1. 构建辅助栈 stack， 遍历字符串 s 中每个字符 c；
+
+   * 当 c 为数字时，将数字字符转化为数字 multi，用于后续倍数计算；
+
+   * 当 c 为字母时，在 res 尾部添加 c；
+
+   * 当 c 为 [ 时，将当前 multi 和 res 入栈，并分别置空置 0:
+
+     * 记录此 [ 前的临时结果 res 至栈，用于发现对应 ] 后的拼接操作；
+
+     * 记录此 [ 前的倍数 multi 至栈，用于发现对应 ] 后，获取 multi × [...] 字符串。
+
+     * 进入到新 [ 后，res 和 multi 重新记录。
+
+	* 当 c 为 ] 时，stack 出栈，拼接字符串 res = last_res + cur_multi * res，其中:
+      * last_res是上个 [ 到当前 [ 的字符串，例如 "3[a2[c]]" 中的 a；
+      * cur_multi是当前 [ 到 ] 内字符串的重复倍数，例如 "3[a2[c]]" 中的 2。
+
+2. 返回字符串 res。
+
+~~~java
+ public String decodeString(String s) {
+        StringBuilder res = new StringBuilder();
+        int multi = 0;
+        LinkedList<Integer> stack_multi = new LinkedList<>();
+        LinkedList<String> stack_res = new LinkedList<>();
+        for(Character c : s.toCharArray()) {
+            if(c == '[') {
+                stack_multi.addLast(multi);
+                stack_res.addLast(res.toString());
+                multi = 0;
+                res = new StringBuilder();
+            }
+            else if(c == ']') {
+                StringBuilder tmp = new StringBuilder();
+                int cur_multi = stack_multi.removeLast();
+                for(int i = 0; i < cur_multi; i++) tmp.append(res);
+                res = new StringBuilder(stack_res.removeLast() + tmp);
+            }
+            else if(c >= '0' && c <= '9') multi = multi * 10 + Integer.parseInt(c + "");
+            else res.append(c);
+        }
+        return res.toString();
+    }
+
+~~~
+
+
+
+**递归解法**
+
+该递归方法一次性返回的是字符数组，数组首个元素表示的是嵌套字符的终止索引。
+
+~~~java
+ public String decodeString(String s) {
+        return dfs(s, 0)[0];
+    }
+    private String[] dfs(String s, int i) {
+        StringBuilder res = new StringBuilder();
+        int multi = 0;
+        while(i < s.length()) {
+            if(s.charAt(i) >= '0' && s.charAt(i) <= '9') 
+                multi = multi * 10 + Integer.parseInt(String.valueOf(s.charAt(i))); 
+            else if(s.charAt(i) == '[') {
+                String[] tmp = dfs(s, i + 1);
+                i = Integer.parseInt(tmp[0]);
+                while(multi > 0) {
+                    res.append(tmp[1]);
+                    multi--;
+                }
+            }
+            else if(s.charAt(i) == ']') 
+                return new String[] { String.valueOf(i), res.toString() };
+            else 
+                res.append(String.valueOf(s.charAt(i)));
+            i++;
+        }
+        return new String[] { res.toString() };
+    } 
+
+~~~
+
+
+
+#### [695. 岛屿的最大面积](https://leetcode-cn.com/problems/max-area-of-island/)
+
+难度中等461收藏分享切换为英文接收动态反馈
+
+给定一个包含了一些 `0` 和 `1` 的非空二维数组 `grid` 。
+
+一个 **岛屿** 是由一些相邻的 `1` (代表土地) 构成的组合，这里的「相邻」要求两个 `1` 必须在水平或者竖直方向上相邻。你可以假设 `grid` 的四个边缘都被 `0`（代表水）包围着。
+
+找到给定的二维数组中最大的岛屿面积。(如果没有岛屿，则返回面积为 `0` 。)
+
+ 
+
+**示例 1:**
+
+```
+[[0,0,1,0,0,0,0,1,0,0,0,0,0],
+ [0,0,0,0,0,0,0,1,1,1,0,0,0],
+ [0,1,1,0,1,0,0,0,0,0,0,0,0],
+ [0,1,0,0,1,1,0,0,1,0,1,0,0],
+ [0,1,0,0,1,1,0,0,1,1,1,0,0],
+ [0,0,0,0,0,0,0,0,0,0,1,0,0],
+ [0,0,0,0,0,0,0,1,1,1,0,0,0],
+ [0,0,0,0,0,0,0,1,1,0,0,0,0]]
+```
+
+对于上面这个给定矩阵应返回 `6`。注意答案不应该是 `11` ，因为岛屿只能包含水平或垂直的四个方向的 `1` 。
+
+**示例 2:**
+
+```
+[[0,0,0,0,0,0,0,0]]
+```
+
+对于上面这个给定的矩阵, 返回 `0`。
+
+ 
+
+**注意:** 给定的矩阵`grid` 的长度和宽度都不超过 50。
+
+通过次数80,433
+
+提交次数123,726
+
+**传统解法**
+
+遍历加递归
+
+~~~java
+ public int dfs(int[][] grid,int i,int j){
+        int m=grid.length,n=grid[0].length;
+        if(i<0||j<0||i>=m||j>=n){
+            return 0;
+        }
+        if(grid[i][j]!=1){
+            grid[i][j]=-1;
+            return 0;
+        }
+        grid[i][j]=-1;
+        return 1+dfs(grid,i-1,j)+dfs(grid,i+1,j)+dfs(grid,i,j-1)+dfs(grid,i,j+1);
+    }
+    public int maxAreaOfIsland(int[][] grid) {
+        //直接在原来数组上进行更改，减少空间复杂度
+        int maxSpace=0;
+        int m=grid.length,n=grid[0].length;
+        for(int i=0;i<m;i++){
+            for(int j=0;j<n;j++){
+                int ele=grid[i][j];
+                if(ele!=1){
+                    //indicate traversed
+                    grid[i][j]=-1;
+                    continue;
+                }
+                maxSpace=Math.max(maxSpace,dfs(grid,i,j));
+            }
+        }
+        return maxSpace;
+    }
+~~~
+
+
+
+**深度优先搜索**
+
+使用$grid[i][j]=0$表示已经访问过该位置
+
+~~~java
+ public int maxAreaOfIsland(int[][] grid) {
+        int ans = 0;
+        for (int i = 0; i != grid.length; ++i) {
+            for (int j = 0; j != grid[0].length; ++j) {
+                ans = Math.max(ans, dfs(grid, i, j));
+            }
+        }
+        return ans;
+    }
+
+    public int dfs(int[][] grid, int cur_i, int cur_j) {
+        if (cur_i < 0 || cur_j < 0 || cur_i == grid.length || cur_j == grid[0].length || grid[cur_i][cur_j] != 1) {
+            return 0;
+        }
+        grid[cur_i][cur_j] = 0;
+        int[] di = {0, 0, 1, -1};
+        int[] dj = {1, -1, 0, 0};
+        int ans = 1;
+        for (int index = 0; index != 4; ++index) {
+            int next_i = cur_i + di[index], next_j = cur_j + dj[index];
+            ans += dfs(grid, next_i, next_j);
+        }
+        return ans;
+    }
+
+~~~
+
+
+
+**深度优先搜索+栈**
+
+~~~java
+public int maxAreaOfIsland(int[][] grid) {
+        int ans = 0;
+        for (int i = 0; i != grid.length; ++i) {
+            for (int j = 0; j != grid[0].length; ++j) {
+                int cur = 0;
+                Deque<Integer> stacki = new LinkedList<Integer>();
+                Deque<Integer> stackj = new LinkedList<Integer>();
+                stacki.push(i);
+                stackj.push(j);
+                while (!stacki.isEmpty()) {
+                    int cur_i = stacki.pop(), cur_j = stackj.pop();
+                    if (cur_i < 0 || cur_j < 0 || cur_i == grid.length || cur_j == grid[0].length || grid[cur_i][cur_j] != 1) {
+                        continue;
+                    }
+                    ++cur;
+                    grid[cur_i][cur_j] = 0;
+                    int[] di = {0, 0, 1, -1};
+                    int[] dj = {1, -1, 0, 0};
+                    for (int index = 0; index != 4; ++index) {
+                        int next_i = cur_i + di[index], next_j = cur_j + dj[index];
+                        stacki.push(next_i);
+                        stackj.push(next_j);
+                    }
+                }
+                ans = Math.max(ans, cur);
+            }
+        }
+        return ans;
+    }
+
+~~~
+
+
+
+**广度优先搜索**
+
+~~~java
+public int maxAreaOfIsland(int[][] grid) {
+        int ans = 0;
+        for (int i = 0; i != grid.length; ++i) {
+            for (int j = 0; j != grid[0].length; ++j) {
+                int cur = 0;
+                Queue<Integer> queuei = new LinkedList<Integer>();
+                Queue<Integer> queuej = new LinkedList<Integer>();
+                queuei.offer(i);
+                queuej.offer(j);
+                while (!queuei.isEmpty()) {
+                    int cur_i = queuei.poll(), cur_j = queuej.poll();
+                    if (cur_i < 0 || cur_j < 0 || cur_i == grid.length || cur_j == grid[0].length || grid[cur_i][cur_j] != 1) {
+                        continue;
+                    }
+                    ++cur;
+                    grid[cur_i][cur_j] = 0;
+                    int[] di = {0, 0, 1, -1};
+                    int[] dj = {1, -1, 0, 0};
+                    for (int index = 0; index != 4; ++index) {
+                        int next_i = cur_i + di[index], next_j = cur_j + dj[index];
+                        queuei.offer(next_i);
+                        queuej.offer(next_j);
+                    }
+                }
+                ans = Math.max(ans, cur);
+            }
+        }
+        return ans;
+    }
+~~~
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -8066,7 +8884,7 @@ $[3, 2, 1, 0, 4]$
 
 算法时间复杂度是nlogn，效率较低
 
-​~~~java
+~~~java
 public List<Integer> lexicalOrder(int n) {
         String[] str=new String[n];
         for(int i=0;i<n;i++){
@@ -8083,7 +8901,7 @@ public List<Integer> lexicalOrder(int n) {
 
 ##### dfs算法实现
 
-​~~~java
+~~~java
 public List<Integer> lexicalOrder(int n) {
         List<Integer> ret = new ArrayList<>();
         dfs(ret, 0, n);
@@ -8096,7 +8914,7 @@ public List<Integer> lexicalOrder(int n) {
             if (newVal > n || newVal == 0) {
                 continue;
             }
-
+    
             ret.add(newVal);
             dfs(ret, newVal, n);
         }
@@ -8209,7 +9027,7 @@ public List<Integer> getTreeNode(TreeNode root){
             }
         }
         return true;
-
+    
     }
 ~~~
 
@@ -8264,3 +9082,5 @@ public boolean leafSimilar(TreeNode root1, TreeNode root2) {
 
 
 
+
+~~~
