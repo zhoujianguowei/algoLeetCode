@@ -8792,9 +8792,101 @@ public int maxAreaOfIsland(int[][] grid) {
 
 
 
+#### [11. 盛最多水的容器](https://leetcode-cn.com/problems/container-with-most-water/)
+
+难度中等2307收藏分享切换为英文接收动态反馈
+
+给你 `n` 个非负整数 `a1，a2，...，a``n`，每个数代表坐标中的一个点 `(i, ai)` 。在坐标内画 `n` 条垂直线，垂直线 `i` 的两个端点分别为 `(i, ai)` 和 `(i, 0)` 。找出其中的两条线，使得它们与 `x` 轴共同构成的容器可以容纳最多的水。
+
+**说明：**你不能倾斜容器。
+
+ 
+
+**示例 1：**
+
+![img](https://aliyun-lc-upload.oss-cn-hangzhou.aliyuncs.com/aliyun-lc-upload/uploads/2018/07/25/question_11.jpg)
+
+```
+输入：[1,8,6,2,5,4,8,3,7]
+输出：49 
+解释：图中垂直线代表输入数组 [1,8,6,2,5,4,8,3,7]。在此情况下，容器能够容纳水（表示为蓝色部分）的最大值为 49。
+```
+
+**示例 2：**
+
+```
+输入：height = [1,1]
+输出：1
+```
+
+**示例 3：**
+
+```
+输入：height = [4,3,2,1,4]
+输出：16
+```
+
+**示例 4：**
+
+```
+输入：height = [1,2,1]
+输出：2
+```
+
+ 
+
+**提示：**
+
+- `n = height.length`
+- `2 <= n <= 3 * 104`
+- `0 <= height[i] <= 3 * 104`
+
+通过次数399,688
+
+提交次数619,108
+
+**传统笨方法**
+
+一开始，想到的是传统暴力破解方法，算法时间复杂度是$O(n^2)$，代码如下。简单做了一下过滤
+
+~~~
+public int maxArea(int[] height) {
+        int maxArea=0;
+        for(int i=0;i<height.length-1;i++){
+            if(height[i]*(height.length-1-i)<maxArea){
+                continue;
+            }
+            for(int j=i+1;j<height.length;j++){
+                maxArea=Math.max(maxArea,Math.min(height[i],height[j])*(j-i));
+            }
+        }
+        return maxArea;
+    }
+~~~
 
 
 
+**双指针方法**
+
+使用两个指针分别指向数组的左右边界，每次计算当前容器所能容纳的大小。然后移动较小的那端，证明也比较简单。自己想下就可以了。
+
+~~~java
+public int maxArea(int[] height) {
+        int l = 0, r = height.length - 1;
+        int ans = 0;
+        while (l < r) {
+            int area = Math.min(height[l], height[r]) * (r - l);
+            ans = Math.max(ans, area);
+            if (height[l] <= height[r]) {
+                ++l;
+            }
+            else {
+                --r;
+            }
+        }
+        return ans;
+    }
+~~~
 
 
 
@@ -9082,5 +9174,7 @@ public boolean leafSimilar(TreeNode root1, TreeNode root2) {
 
 
 
+
+~~~
 
 ~~~
