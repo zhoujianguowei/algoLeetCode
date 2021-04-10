@@ -8890,47 +8890,842 @@ public int maxArea(int[] height) {
 
 
 
+#### [322. 零钱兑换](https://leetcode-cn.com/problems/coin-change/)
+
+难度中等1173收藏分享切换为英文接收动态反馈
+
+给定不同面额的硬币 `coins` 和一个总金额 `amount`。编写一个函数来计算可以凑成总金额所需的最少的硬币个数。如果没有任何一种硬币组合能组成总金额，返回 `-1`。
+
+你可以认为每种硬币的数量是无限的。
+
+ 
+
+**示例 1：**
+
+```
+输入：coins = [1, 2, 5], amount = 11
+输出：3 
+解释：11 = 5 + 5 + 1
+```
+
+**示例 2：**
+
+```
+输入：coins = [2], amount = 3
+输出：-1
+```
+
+**示例 3：**
+
+```
+输入：coins = [1], amount = 0
+输出：0
+```
+
+**示例 4：**
+
+```
+输入：coins = [1], amount = 1
+输出：1
+```
+
+**示例 5：**
+
+```
+输入：coins = [1], amount = 2
+输出：2
+```
+
+ 
+
+**提示：**
+
+- `1 <= coins.length <= 12`
+- `1 <= coins[i] <= 231 - 1`
+- `0 <= amount <= 104`
+
+通过次数205,487
+
+提交次数477,586
+
+**传统的dp算法**
+
+分析题目，不难得出对应的dp转移方程，定义$dp[j]$表示组成金额为$j$的硬币的最小个数，初始化$dp[j]=-1,dp[0]=0$，dp方程如下
+
+
+$$
+dp[j]=min(dp[j-s[i]]+1)	//其中dp[j-s[i]]不为-1，i表示硬币索引
+$$
+
+
+
+代码如下:
+
+~~~java
+public int coinChange(int[] coins, int amount) {
+        int[] dp=new int[amount+1];
+        Arrays.fill(dp,-1);
+        Arrays.sort(coins);
+        int cn=coins.length;
+        dp[0]=0;
+        for(int i=1;i<=amount;i++){
+            int minV=Integer.MAX_VALUE;
+            for(int j=0;j<cn;j++){
+                if(minV==Integer.MAX_VALUE&&i<coins[j]){
+                    break;
+                }
+                if(i>=coins[j]&&dp[i-coins[j]]!=-1){
+                    minV=Math.min(minV,dp[i-coins[j]]+1);
+                }
+            }
+            if(minV!=Integer.MAX_VALUE){
+                dp[i]=minV;
+            }
+        }
+        return dp[amount];
+    }
+~~~
+
+
+
+**dfs算法实现**
+
+实际上是dfs和剪枝算法的结合
+
+~~~
+public int coinChange(int[] coins, int amount) {
+        if (amount<1||coins.length==0||coins==null)return 0;
+        Arrays.sort(coins);
+        int[] ans = new int[]{Integer.MAX_VALUE};
+        dfs(coins,amount,coins.length-1,0,ans);
+        return ans[0] ==Integer.MAX_VALUE ? -1 : ans[0];
+    }
+
+    /*
+     * @param coins待选硬币面额
+     * @param amount需要凑够的金额
+     * @param coindex当前选择的硬币面额索引
+     * @param count目前已经选的硬币数量
+     * @param ans返回结果
+     * @return
+      */
+    private void dfs(int[] coins, int amount, int coinIdx, int count, int[] ans) {
+        /*
+        * 整体策略
+        * 如果凑过所需金额amount，即得到一个潜在答案，计算所需的最小count
+        * 如果未凑够
+        * （1）如果coins是最小面额，说明这个凑发不合理，剪枝
+        * （2）如果(目前已选择的硬币数量 + 1) >= ans，说明继续往下凑，硬币数量不会小于ans，剪枝
+        * （3）否则尝试选择面值比coin小的硬币去凑剩余的金额
+        * (4) 减少面值为coin的硬币数量，进入 <1>*/
+        for (int c = amount / coins[coinIdx]; c >= 0; c--) {
+            int reamin=amount-c*coins[coinIdx];
+            int curCount=count+c;
+            if (reamin==0){
+                // 已经优先用面值较大的硬币了
+                // 如果用面值较小的硬币，凑出来的数量只会更多
+                // 所以直接剪枝，没必要尝试减少大面值硬币的数量，用小面值的硬币去凑
+                ans[0]=Math.min(ans[0],curCount);
+                return;
+            }
+            // 已经是最小面值了，如果还凑不够amount，说明不可能凑出这个数目，直接剪枝
+            if (coinIdx==0)return;
+            // 继续往下凑，硬币数量不会小于ans，直接剪枝
+            if (curCount+1>=ans[0])return;
+            // 选择较小的面值凑够剩余的金额
+            dfs(coins, reamin, coinIdx - 1, curCount, ans);
+        }
+    }
+~~~
+
+
+
+## 2021年4月
+
+#### [142. 环形链表 II](https://leetcode-cn.com/problems/linked-list-cycle-ii/)
+
+难度中等952收藏分享切换为英文接收动态反馈
+
+给定一个链表，返回链表开始入环的第一个节点。 如果链表无环，则返回 `null`。
+
+为了表示给定链表中的环，我们使用整数 `pos` 来表示链表尾连接到链表中的位置（索引从 0 开始）。 如果 `pos` 是 `-1`，则在该链表中没有环。**注意，`pos` 仅仅是用于标识环的情况，并不会作为参数传递到函数中。**
+
+**说明：**不允许修改给定的链表。
+
+**进阶：**
+
+- 你是否可以使用 `O(1)` 空间解决此题？
+
+ 
+
+**示例 1：**
+
+![img](https://assets.leetcode-cn.com/aliyun-lc-upload/uploads/2018/12/07/circularlinkedlist.png)
+
+```
+输入：head = [3,2,0,-4], pos = 1
+输出：返回索引为 1 的链表节点
+解释：链表中有一个环，其尾部连接到第二个节点。
+```
+
+**示例 2：**
+
+![img](https://assets.leetcode-cn.com/aliyun-lc-upload/uploads/2018/12/07/circularlinkedlist_test2.png)
+
+```
+输入：head = [1,2], pos = 0
+输出：返回索引为 0 的链表节点
+解释：链表中有一个环，其尾部连接到第一个节点。
+```
+
+**示例 3：**
+
+![img](https://assets.leetcode-cn.com/aliyun-lc-upload/uploads/2018/12/07/circularlinkedlist_test3.png)
+
+```
+输入：head = [1], pos = -1
+输出：返回 null
+解释：链表中没有环。
+```
+
+ 
+
+**提示：**
+
+- 链表中节点的数目范围在范围 `[0, 104]` 内
+- `-105 <= Node.val <= 105`
+- `pos` 的值为 `-1` 或者链表中的一个有效索引
+
+通过次数211,380
+
+提交次数387,655
+
+**传统方法，直接用过set做去重**
+
+~~~java
+public ListNode detectCycle(ListNode head) {
+        Set<ListNode> st=new HashSet();
+        ListNode p=head;
+        while(p!=null){
+            if(st.contains(p)){
+                return p;
+            }
+            st.add(p);
+            p=p.next;
+        }
+        return null;
+    }
+~~~
 
 
 
 
 
+**快慢指针**
+这个方法是比较巧妙的方法，但是不容易想到，也不太容易理解，利用快慢指针判断是否有环很容易，但是判断环的入口就没有那么容易，之前说过快慢指针肯定会在环内相遇，见下图。
+
+![image-20201027184755943](https://pic.leetcode-cn.com/1609485152-ljsLuE-file_1609485153092)
+
+上图黄色节点为快慢指针相遇的节点，此时
+
+快指针走的距离：**a+(b+c)n+b**
+
+很容易理解b+c为环的长度，a为直线距离，b为绕了n圈之后又走了一段距离才相遇，所以相遇时走的总路程为a+(b+c)n+b，合并同类项得**a+(n+1)b+nc**。
+
+慢指针走的距离：a+(b+c)m+b,m代表圈数。
+
+然后我们设快指针得速度是慢指针的2倍,含义为相同时间内，快指针走过的距离是慢指针的2倍。
+
+**a+(n+1)b+nc=2[a+(m+1)b+mc]整理得a+b=(n-2m)(b+c)，**那么我们可以从这个等式上面发现什么呢？b+c
+
+为一圈的长度。也就是说a+b等于n-2m个环的长度。为了便于理解我们看一种特殊情况，当n-2m等于1，那么a+b=b+c整理得，a=c此时我们只需重新释放两个指针，一个从head释放，一个从相遇点释放，速度相同，因为a=c所以他俩必会在环入口处相遇，则求得入口节点索引。
+
+即$a=(n-2m-1)(b+c)+c$。从头结点出发的指针显然需要走$a$步才能到达相遇环开始地方，而相遇点走到$a$步会到达哪里，代入公式得到，会走到这个位置$(n-2m-1)(b+c)+c+b$，显然会走到环节点开始地方。
+
+算法流程：
+
+1.设置快慢指针，快指针速度为慢指针的2倍
+
+2.找出相遇点
+
+3.在head处和相遇点同时释放相同速度且速度为1的指针，两指针必会在环入口处相遇
+
+
+
+~~~java
+public ListNode detectCycle(ListNode head) {
+       //快慢指针
+        ListNode fast = head;
+        ListNode low  = head;
+        //设置循环条件
+        while(fast!=null&&fast.next!=null){
+            fast=fast.next.next;
+            low = low.next;
+            //相遇
+            if(fast==low){
+                //设置一个新的指针，从头节点出发，慢指针速度为1，所以可以使用慢指针从相遇点出发
+                ListNode newnode = head;
+                while(newnode!=low){        
+                    low = low.next;
+                    newnode = newnode.next;
+                }
+                //在环入口相遇
+                return low;
+            }
+        } 
+        return null;
+        
+    }
+
+~~~
+
+
+
+#### [347. 前 K 个高频元素](https://leetcode-cn.com/problems/top-k-frequent-elements/)
+
+难度中等719收藏分享切换为英文接收动态反馈
+
+给定一个非空的整数数组，返回其中出现频率前 k 高的元素。
+
+ 
+
+**示例 1:**
+
+```
+输入: nums = [1,1,1,2,2,3], k = 2
+输出: [1,2]
+```
+
+**示例 2:**
+
+```
+输入: nums = [1], k = 1
+输出: [1]
+```
+
+ 
+
+**提示：**
+
+- 你可以假设给定的 *k* 总是合理的，且 1 ≤ k ≤ 数组中不相同的元素的个数。
+- 你的算法的时间复杂度**必须**优于 O(*n* log *n*) , *n* 是数组的大小。
+- 题目数据保证答案唯一，换句话说，数组中前 k 个高频元素的集合是唯一的。
+- 你可以按任意顺序返回答案。
+
+通过次数149,599
+
+提交次数241,435
+
+**传统做法**
+
+首先遍历所有元素，统计元素的出现频率，创建一个优先队列，长度为$k$,采用小顶堆方式，不断的遍历频率表，并放入优先队列，为了减少队列的长度，每当长度超过$k$时候，删除最小出现的频率的数。算法时间复杂度是$n\log_2{k}$
+
+~~~java
+public int[] topKFrequent(int[] nums, int k) {
+        Map<Integer, Integer> num2FreqMap = new HashMap();
+        for (int i = 0; i < nums.length; i++) {
+            num2FreqMap.compute(nums[i], (key, val) -> val == null ? 1 : val + 1);
+        }
+        Comparator<Map.Entry<Integer, Integer>> entryComparator = 
+                Comparator.comparingInt(entry -> entry.getValue());
+        PriorityQueue<Map.Entry<Integer, Integer>> priorityQueue = new PriorityQueue<>(k, entryComparator);
+        for (Map.Entry<Integer, Integer> entry : num2FreqMap.entrySet()) {
+            priorityQueue.offer(entry);
+            if (priorityQueue.size() > k) {
+                //remove the smallest element
+                priorityQueue.remove();
+            }
+        }
+        List<Integer> result = priorityQueue.stream().map(
+                entry -> entry.getKey()).collect(Collectors.toList());
+        int[] primeResult = new int[result.size()];
+        for (int i = 0; i < result.size(); i++) {
+            primeResult[i] = result.get(i);
+        }
+        return primeResult;
+
+    }
+~~~
+
+
+
+**官方解答（注意优先队列存储的数据内容）**
+
+~~~java
+  public int[] topKFrequent(int[] nums, int k) {
+        Map<Integer, Integer> occurrences = new HashMap<Integer, Integer>();
+        for (int num : nums) {
+            occurrences.put(num, occurrences.getOrDefault(num, 0) + 1);
+        }
+
+        // int[] 的第一个元素代表数组的值，第二个元素代表了该值出现的次数
+        PriorityQueue<int[]> queue = new PriorityQueue<int[]>(new Comparator<int[]>() {
+            public int compare(int[] m, int[] n) {
+                return m[1] - n[1];
+            }
+        });
+        for (Map.Entry<Integer, Integer> entry : occurrences.entrySet()) {
+            int num = entry.getKey(), count = entry.getValue();
+            if (queue.size() == k) {
+                if (queue.peek()[1] < count) {
+                    queue.poll();
+                    queue.offer(new int[]{num, count});
+                }
+            } else {
+                queue.offer(new int[]{num, count});
+            }
+        }
+        int[] ret = new int[k];
+        for (int i = 0; i < k; ++i) {
+            ret[i] = queue.poll()[0];
+        }
+        return ret;
+    }
+~~~
+
+
+
+**基于快速排序**
+
+我们可以使用基于快速排序的方法，求出「出现次数数组」的前 $k$ 大的值。
+
+在对数组 $arr[l…r]$ 做快速排序的过程中，我们首先将数组划分为两个部分 $arr[i…q−1]$ 与 $arr[q+1…j]$，并使得 $arr[i…q−1] $中的每一个值都不超过 $arr[q]$，且 $arr[q+1…j]$中的每一个值都大于 $arr[q]$。
+
+于是，我们根据 $k$ 与左侧子数组 $arr[i…q−1]$ 的长度（为 $q−i$）的大小关系：
+
++ 如果 $k≤q−i$，则数组 $arr[l…r] $前 $k$ 大的值，就等于子数组 $arr[i…q−1]$ 前 $k$ 大的值。
+
++ 否则，数组 $arr[l…r]$ 前 $k$ 大的值，就等于左侧子数组全部元素，加上右侧子数组 $arr[q+1…j]$ 中前 $k−(q−i)$ 大的值。
+
+原版的快速排序算法的平均时间复杂度为 $O(NlogN)$。我们的算法中，每次只需在其中的一个分支递归即可，因此算法的平均时间复杂度降为 $O(N)$。
+
+~~~java
+public int[] topKFrequent(int[] nums, int k) {
+        Map<Integer, Integer> occurrences = new HashMap<Integer, Integer>();
+        for (int num : nums) {
+            occurrences.put(num, occurrences.getOrDefault(num, 0) + 1);
+        }
+
+        List<int[]> values = new ArrayList<int[]>();
+        for (Map.Entry<Integer, Integer> entry : occurrences.entrySet()) {
+            int num = entry.getKey(), count = entry.getValue();
+            values.add(new int[]{num, count});
+        }
+        int[] ret = new int[k];
+        qsort(values, 0, values.size() - 1, ret, 0, k);
+        return ret;
+    }
+
+    public void qsort(List<int[]> values, int start, int end, int[] ret, int retIndex, int k) {
+        int picked = (int) (Math.random() * (end - start + 1)) + start;
+        Collections.swap(values, picked, start);
+        
+        int pivot = values.get(start)[1];
+        int index = start;
+        for (int i = start + 1; i <= end; i++) {
+            if (values.get(i)[1] >= pivot) {
+                Collections.swap(values, index + 1, i);
+                index++;
+            }
+        }
+        Collections.swap(values, start, index);
+
+        if (k <= index - start) {
+            qsort(values, start, index - 1, ret, retIndex, k);
+        } else {
+            for (int i = start; i <= index; i++) {
+                ret[retIndex++] = values.get(i)[0];
+            }
+            if (k > index - start + 1) {
+                qsort(values, index + 1, end, ret, retIndex, k - (index - start + 1));
+            }
+        }
+    }
+~~~
 
 
 
 
 
+#### [79. 单词搜索](https://leetcode-cn.com/problems/word-search/)
+
+难度中等862收藏分享切换为英文接收动态反馈
+
+给定一个 `m x n` 二维字符网格 `board` 和一个字符串单词 `word` 。如果 `word` 存在于网格中，返回 `true` ；否则，返回 `false` 。
+
+单词必须按照字母顺序，通过相邻的单元格内的字母构成，其中“相邻”单元格是那些水平相邻或垂直相邻的单元格。同一个单元格内的字母不允许被重复使用。
+
+ 
+
+**示例 1：**
+
+![img](https://assets.leetcode.com/uploads/2020/11/04/word2.jpg)
+
+```
+输入：board = [["A","B","C","E"],["S","F","C","S"],["A","D","E","E"]], word = "ABCCED"
+输出：true
+```
+
+**示例 2：**
+
+![img](https://assets.leetcode.com/uploads/2020/11/04/word-1.jpg)
+
+```
+输入：board = [["A","B","C","E"],["S","F","C","S"],["A","D","E","E"]], word = "SEE"
+输出：true
+```
+
+**示例 3：**
+
+![img](https://assets.leetcode.com/uploads/2020/10/15/word3.jpg)
+
+```
+输入：board = [["A","B","C","E"],["S","F","C","S"],["A","D","E","E"]], word = "ABCB"
+输出：false
+```
+
+ 
+
+**提示：**
+
+- `m == board.length`
+- `n = board[i].length`
+- `1 <= m, n <= 6`
+- `1 <= word.length <= 15`
+- `board` 和 `word` 仅由大小写英文字母组成
+
+ 
+
+**进阶：**你可以使用搜索剪枝的技术来优化解决方案，使其在 `board` 更大的情况下可以更快解决问题？
+
+通过次数159,564
+
+提交次数358,020
+
+**传统方法dfs**
+
+回溯方法
+
+~~~java
+public boolean match(char[][] board,String word,boolean[][] visited,int i,int j,int k){
+        if(k==word.length()){
+            return true;
+        }
+        int m=board.length,n=board[0].length;
+        if(i>=m||j>=n||i<=-1||j<=-1){
+            return false;
+        }
+        if(word.charAt(k)!=board[i][j]||visited[i][j]){
+            return false;
+        }
+        //if match ,update visited flag
+        visited[i][j]=true;
+        //up、down、left、right match
+        //up
+        if(match(board,word,visited,i,j-1,k+1)){
+            visited[i][j]=false;
+            return true;
+        }
+        //down
+        if(match(board,word,visited,i,j+1,k+1)){
+            visited[i][j]=false;
+            return true;
+        }
+        //left
+        if(match(board,word,visited,i-1,j,k+1)){
+            visited[i][j]=false;
+            return true;
+        }
+        //right
+        if(match(board,word,visited,i+1,j,k+1)){
+            visited[i][j]=false;
+            return true;
+        }
+        visited[i][j]=false;
+        return false;
+    }
+    public boolean exist(char[][] board, String word) {
+        int m=board.length;
+        int n=board[0].length;
+        boolean[][] mem=new boolean[m][n];
+        for(int i=0;i<m;i++){
+            for(int j=0;j<n;j++){
+                if(match(board,word,mem,i,j,0)){
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+~~~
 
 
 
+**网上添加上剪枝方法**
+
+~~~java
+ boolean[][] visit;
+        int[] dx = {-1, 0, 0, 1};
+        int[] dy = {0, -1, 1, 0};
+    public boolean exist(char[][] board, String word) {
+        int[] count = new int[128];
+        
+        for (int i = 0; i < board.length; i++) {
+            for (int j = 0; j < board[0].length; j++) {
+                count[board[i][j]]++;
+            }
+        }
+        for(char c:word.toCharArray()){
+            if(--count[c]<0){
+                return false;
+            }
+        }
+        visit = new boolean[board.length][board[0].length];
+        for (int i = 0; i < board.length; i++) {
+            for (int j = 0; j < board[0].length; j++) {
+                if (!visit[i][j] && board[i][j] == word.charAt(0)) {
+                    visit[i][j] = true;
+                    if (dfs(board, word.substring(1), i, j)) {
+                        return true;
+                    }
+                    visit[i][j] = false;
+                }
+            }
+        }
+        return false;
+    }
+    public boolean dfs(char[][] board, String word, int x, int y) {
+        if (word == null || word.length() == 0) {
+            return true;
+        }
+        for (int i = 0; i < 4; i++) {
+            int currX = x + dx[i];
+            int currY = y + dy[i];
+            if (currX >= 0 && currX < board.length && currY >= 0 && currY < board[0].length && !visit[currX][currY] && board[currX][currY] == word.charAt(0)) {
+                visit[currX][currY] = true;
+                if(dfs(board, word.substring(1), currX, currY)){
+                        return true;
+                }
+                visit[currX][currY] = false;
+            }
+        }
+        return false;
+
+    }
+~~~
 
 
 
+**官方解答**
+
+~~~java
+public boolean exist(char[][] board, String word) {
+        int h = board.length, w = board[0].length;
+        boolean[][] visited = new boolean[h][w];
+        for (int i = 0; i < h; i++) {
+            for (int j = 0; j < w; j++) {
+                boolean flag = check(board, visited, i, j, word, 0);
+                if (flag) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    public boolean check(char[][] board, boolean[][] visited, int i, int j, String s, int k) {
+        if (board[i][j] != s.charAt(k)) {
+            return false;
+        } else if (k == s.length() - 1) {
+            return true;
+        }
+        visited[i][j] = true;
+        int[][] directions = {{0, 1}, {0, -1}, {1, 0}, {-1, 0}};
+        boolean result = false;
+        for (int[] dir : directions) {
+            int newi = i + dir[0], newj = j + dir[1];
+            if (newi >= 0 && newi < board.length && newj >= 0 && newj < board[0].length) {
+                if (!visited[newi][newj]) {
+                    boolean flag = check(board, visited, newi, newj, s, k + 1);
+                    if (flag) {
+                        result = true;
+                        break;
+                    }
+                }
+            }
+        }
+        visited[i][j] = false;
+        return result;
+    }
+~~~
 
 
 
+#### [16. 最接近的三数之和](https://leetcode-cn.com/problems/3sum-closest/)
+
+难度中等745收藏分享切换为英文接收动态反馈
+
+给定一个包括 *n* 个整数的数组 `nums` 和 一个目标值 `target`。找出 `nums` 中的三个整数，使得它们的和与 `target` 最接近。返回这三个数的和。假定每组输入只存在唯一答案。
+
+ 
+
+**示例：**
+
+```
+输入：nums = [-1,2,1,-4], target = 1
+输出：2
+解释：与 target 最接近的和是 2 (-1 + 2 + 1 = 2) 。
+```
+
+ 
+
+**提示：**
+
+- `3 <= nums.length <= 10^3`
+- `-10^3 <= nums[i] <= 10^3`
+- `-10^4 <= target <= 10^4`
+
+通过次数204,135
+
+提交次数444,393
+
+**常规方法**
+
+基本步骤：首先将整个数组进行排序，按照排序后的数组，求得三个数的最接近目标和的方式。整体时间复杂度是$O(N^2)$。
+
+~~~java
+ public int twoSumCloseDiff(int[] nums,int left,int right,int target){
+        int minDiff=target-(nums[left]+nums[right]);
+        while(left<right){
+            if(nums[left]+nums[right]==target){
+                return 0;
+            }
+            if(Math.abs(minDiff)>Math.abs(nums[left]+nums[right]-target)){
+                minDiff=target-(nums[left]+nums[right]);
+            }
+            if(nums[left]+nums[right]>target){
+                right--;
+            }else{
+                left++;
+            }
+          
+        }
+        return minDiff;
+    }
+    public int threeSumClosest(int[] nums, int target) {
+        Arrays.sort(nums);
+        int diff=target-(nums[0]+nums[1]+nums[2]);
+        for(int i=0;i+2<nums.length;i++){
+            int minClose=twoSumCloseDiff(nums,i+1,nums.length-1,target-nums[i]);
+            if(Math.abs(minClose)<Math.abs(diff)){
+                diff=minClose;
+            }
+        }
+        return target-diff;
+    }
+~~~
 
 
 
+**添加了剪枝方法**
+
+~~~java
+public int threeSumClosest(int[] nums, int target) {
+        Arrays.sort(nums);
+        int result = nums[0] + nums[1] + nums[2];
+        for (int i = 0; i < nums.length - 2; i++) {
+            int left = i + 1;
+            int right = nums.length - 1;
+            while (left != right) {
+                int min = nums[i] + nums[left] + nums[left + 1];    
+                if (target < min) {  // 最小值剪枝
+                    if (Math.abs(result - target) > Math.abs(min - target))
+                        result = min;
+                    break;
+                }
+                int max = nums[i] + nums[right] + nums[right - 1];
+                if (target > max) { 
+                    if (Math.abs(result - target) > Math.abs(max - target))
+                        result = max;
+                    break;
+                }
+                int sum = nums[i] + nums[left] + nums[right];
+                if (sum == target)
+                    return sum;
+                else if (Math.abs(sum - target) < Math.abs(result - target)) {
+                    result = sum;
+
+                }
+                if (sum > target) {
+                    right--;
+                    while (left != right && nums[right] == nums[right + 1]) // 过滤连续相同值
+                        right--;
+                } else {
+                    left++;
+                    while (left != right && nums[left] == nums[left - 1])// 过滤连续相同值
+                        left++;
+                }
+            }
+
+            while (i < nums.length - 2 && nums[i] == nums[i + 1]) // i 同样过滤连续值
+                i++;
+        }
+
+        return result;
+    }
+~~~
 
 
 
+**官方答案**
 
+~~~java
+ public int threeSumClosest(int[] nums, int target) {
+        Arrays.sort(nums);
+        int n = nums.length;
+        int best = 10000000;
 
+        // 枚举 a
+        for (int i = 0; i < n; ++i) {
+            // 保证和上一次枚举的元素不相等
+            if (i > 0 && nums[i] == nums[i - 1]) {
+                continue;
+            }
+            // 使用双指针枚举 b 和 c
+            int j = i + 1, k = n - 1;
+            while (j < k) {
+                int sum = nums[i] + nums[j] + nums[k];
+                // 如果和为 target 直接返回答案
+                if (sum == target) {
+                    return target;
+                }
+                // 根据差值的绝对值来更新答案
+                if (Math.abs(sum - target) < Math.abs(best - target)) {
+                    best = sum;
+                }
+                if (sum > target) {
+                    // 如果和大于 target，移动 c 对应的指针
+                    int k0 = k - 1;
+                    // 移动到下一个不相等的元素
+                    while (j < k0 && nums[k0] == nums[k]) {
+                        --k0;
+                    }
+                    k = k0;
+                } else {
+                    // 如果和小于 target，移动 b 对应的指针
+                    int j0 = j + 1;
+                    // 移动到下一个不相等的元素
+                    while (j0 < k && nums[j0] == nums[j]) {
+                        ++j0;
+                    }
+                    j = j0;
+                }
+            }
+        }
+        return best;
+    }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+~~~
 
 
 
