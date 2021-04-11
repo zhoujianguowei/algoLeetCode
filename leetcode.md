@@ -1,6 +1,6 @@
 # leetcode
 
-## alibaba
+## 算法alibaba
 
 ### tree
 
@@ -9729,27 +9729,129 @@ public int threeSumClosest(int[] nums, int target) {
 
 
 
+#### [139. 单词拆分](https://leetcode-cn.com/problems/word-break/)
+
+难度中等930收藏分享切换为英文接收动态反馈
+
+给定一个**非空**字符串 *s* 和一个包含**非空**单词的列表 *wordDict*，判定 *s* 是否可以被空格拆分为一个或多个在字典中出现的单词。
+
+**说明：**
+
+- 拆分时可以重复使用字典中的单词。
+- 你可以假设字典中没有重复的单词。
+
+**示例 1：**
+
+```
+输入: s = "leetcode", wordDict = ["leet", "code"]
+输出: true
+解释: 返回 true 因为 "leetcode" 可以被拆分成 "leet code"。
+```
+
+**示例 2：**
+
+```
+输入: s = "applepenapple", wordDict = ["apple", "pen"]
+输出: true
+解释: 返回 true 因为 "applepenapple" 可以被拆分成 "apple pen apple"。
+     注意你可以重复使用字典中的单词。
+```
+
+**示例 3：**
+
+```
+输入: s = "catsandog", wordDict = ["cats", "dog", "sand", "and", "cat"]
+输出: false
+```
+
+通过次数134,023
+
+提交次数269,498
+
+**我的解答**
+
+首次尝试使用dfs方法进行递归遍历，结果超时了。想到使用dp算法来解答，定义函数$ans[i]$表示单词$word$的第$0$到第$i-1$的字符串能够被给定的列表$wordList$匹配，得到动态规划转移方程
+$$
+ans[i-1+wordItem.length()]=ans[i-1]+match(word.substring(i-1,Math.min(word.length(),i-1+wordItem.length())))	\\
+其中要求ans[i-1]=true并且match表达式为true，
+
+		
+$$
+
+
+注意定义的动态规划结果数组的索引结构形式，为了逻辑上处理方便，$ans[i]$实际是从1开始进行处理的。
+
+~~~java
+ public boolean wordBreak(String s, List<String> wordDict) {
+        boolean[] ans=new boolean[s.length()+1];
+        ans[0]=true;
+        for(int i=1;i<=s.length();i++){
+            if(!ans[i-1]){
+                continue;
+            }
+            for(String word:wordDict){
+                String substr=s.substring(i-1,Math.min(s.length(),i-1+word.length()));
+                if(word.equals(substr)){
+                    ans[i+word.length()-1]=true;
+                }
+            }
+        }
+        return ans[s.length()];
+    }
+~~~
 
 
 
+**官方解答（不带剪枝方法）**
+
+~~~java
+public boolean wordBreak(String s, List<String> wordDict) {
+        Set<String> wordDictSet = new HashSet(wordDict);
+        boolean[] dp = new boolean[s.length() + 1];
+        dp[0] = true;
+        for (int i = 1; i <= s.length(); i++) {
+            for (int j = 0; j < i; j++) {
+                if (dp[j] && wordDictSet.contains(s.substring(j, i))) {
+                    dp[i] = true;
+                    break;
+                }
+            }
+        }
+        return dp[s.length()];
+    }
+
+~~~
 
 
 
+**优化方法(带剪枝方法)**
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-## 数字
+~~~java
+public boolean wordBreak(String s, List<String> wordDict) {
+        //dp[0]=true 第0个字符
+        boolean[] dp = new boolean[s.length() + 1];
+        Set<String> hashSet = new HashSet<>(wordDict.size());
+        //用于剪枝
+        int max = 0;
+        for (String word : wordDict) {
+            hashSet.add(word);
+            if (word.length() > max) max = word.length();
+        }
+        dp[0] = true;
+        //遍历1-n个字符
+        for (int i = 1; i <= s.length(); i++) {
+            // 前 j 个(dp[j] 已求出) + 第 j-i 的字符
+                                    //j最多只需遍历max的长度
+            for (int j = i - 1; j >= (i > max ? i - max : 0); j--) {
+                if (dp[j] && hashSet.contains(s.substring(j, i))) {
+                    dp[i] = true;
+                    break;
+                }
+            }
+        }
+        return dp[s.length()];
+    }
+~~~
 
 
 
@@ -9767,7 +9869,7 @@ public int threeSumClosest(int[] nums, int target) {
 
 通过次数15,550提交次数21,265
 
-##### 暴力破解
+**暴力破解**
 
 算法时间复杂度是nlogn，效率较低
 
@@ -9786,7 +9888,7 @@ public List<Integer> lexicalOrder(int n) {
     }
 ~~~
 
-##### dfs算法实现
+**dfs算法实现**
 
 ~~~java
 public List<Integer> lexicalOrder(int n) {
@@ -9879,7 +9981,7 @@ public List<Integer> lexicalOrder(int n) {
 
 通过次数22,733提交次数36,229
 
-##### 传统方法
+**传统方法**
 
 ~~~java
 public List<Integer> getTreeNode(TreeNode root){
@@ -9918,7 +10020,7 @@ public List<Integer> getTreeNode(TreeNode root){
     }
 ~~~
 
-##### 中序遍历小递归
+**中序遍历小递归**
 
 ~~~java
 public boolean leafSimilar(TreeNode root1, TreeNode root2) {
@@ -9969,7 +10071,498 @@ public boolean leafSimilar(TreeNode root1, TreeNode root2) {
 
 
 
+#### [29. 两数相除](https://leetcode-cn.com/problems/divide-two-integers/)
 
+难度中等548收藏分享切换为英文接收动态反馈
+
+给定两个整数，被除数 `dividend` 和除数 `divisor`。将两数相除，要求不使用乘法、除法和 mod 运算符。
+
+返回被除数 `dividend` 除以除数 `divisor` 得到的商。
+
+整数除法的结果应当截去（`truncate`）其小数部分，例如：`truncate(8.345) = 8` 以及 `truncate(-2.7335) = -2`
+
+ 
+
+**示例 1:**
+
+```
+输入: dividend = 10, divisor = 3
+输出: 3
+解释: 10/3 = truncate(3.33333..) = truncate(3) = 3
+```
+
+**示例 2:**
+
+```
+输入: dividend = 7, divisor = -3
+输出: -2
+解释: 7/-3 = truncate(-2.33333..) = -2
+```
+
+ 
+
+**提示：**
+
+- 被除数和除数均为 32 位有符号整数。
+- 除数不为 0。
+- 假设我们的环境只能存储 32 位有符号整数，其数值范围是 [−231, 231 − 1]。本题中，如果除法结果溢出，则返回 231 − 1。
+
+通过次数85,479
+
+提交次数418,905
+
+**我的答案**
+
+注意考虑边界条件，边界条件即是除数是$Integer.MIN\_VALUE$，被除数是$-1$的情况，此时会发生数据溢出。其它情况不会发生数据溢出，为了处理上的方便，采用long类型进行转换，同时统一采用正数进行数据处理。使用map来保存被除数的指数次幂。用来进行数据累计。
+
+~~~java
+public int divide(int dividend, int divisor) {
+        //use long instead to avoid overflow
+        long lDividend=dividend,lDivisor=divisor;
+        long posDividend=lDividend<0?-lDividend:lDividend;
+        long posDivisor=lDivisor<0?-lDivisor:lDivisor;
+        if(posDividend<posDivisor||posDividend==0){
+            return 0;
+        }
+        List<long[]> powList=new ArrayList();
+        long powSum=posDivisor;
+        long exp=1;
+        powList.add(new long[]{exp,powSum});
+        while(powSum<=posDividend){
+            powSum+=powSum;
+            exp+=exp;
+            powList.add(new long[]{exp,powSum});
+        }
+        long result=0L;
+        for(int i=powList.size()-1;i>=0;i--){
+            exp=powList.get(i)[0];
+            powSum=powList.get(i)[1];
+            if(posDividend>=powSum){
+                posDividend-=powSum;
+                result+=exp;
+            }
+        }
+        boolean sameSignal=(dividend>0&&divisor>0)||(dividend<0&&divisor<0);
+        //overflow
+        if(result>Integer.MAX_VALUE&&sameSignal){
+            return Integer.MAX_VALUE;
+        }
+        return sameSignal?(int)result:(int)(-result);
+    }
 ~~~
 
+
+
+**网上解法**
+
+~~~java
+public int divide(int dividend, int divisor) {
+        if(dividend==0) return 0;
+        if(divisor==Integer.MIN_VALUE){
+            if(dividend==Integer.MIN_VALUE)
+                return 1;
+            else
+                return 0;
+        }
+        int res=0;
+        if(dividend==Integer.MIN_VALUE){
+            if(divisor==-1)
+                return Integer.MAX_VALUE;
+            else if(divisor==Integer.MIN_VALUE)
+                return 1;
+            else if(divisor==1)
+                return Integer.MIN_VALUE;
+            else{
+                res+=1;
+                if(divisor<0){
+                    dividend-=divisor;
+                }
+                else{
+                    dividend+=divisor;
+                }
+            } 
+        }
+        boolean flag=false;
+        if(dividend>0 && divisor<0){
+            divisor*=-1;
+            flag=true;   
+        }
+        else if(dividend<0 && divisor>0){
+            dividend*=-1;
+            flag=true;
+        }
+        else if(dividend<0 && divisor<0){
+            dividend*=-1;
+            divisor*=-1;
+            //flag=true;
+        }
+        ////if(dividend>0 && divisor>0){
+            while(dividend>=divisor){
+                int s=divisor;int c=1;
+                while(s<(dividend>>1)){
+                    s+=s;
+                    c+=c;
+                }
+                dividend-=s;
+                res+=c;
+            }
+            
+        //}
+        return flag==false?res:res*-1;
+    }
 ~~~
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+## shell
+
+#### [193. 有效电话号码](https://leetcode-cn.com/problems/valid-phone-numbers/)
+
+难度简单66收藏分享切换为英文接收动态反馈
+
+给定一个包含电话号码列表（一行一个电话号码）的文本文件 `file.txt`，写一个单行 bash 脚本输出所有有效的电话号码。
+
+你可以假设一个有效的电话号码必须满足以下两种格式： (xxx) xxx-xxxx 或 xxx-xxx-xxxx。（x 表示一个数字）
+
+你也可以假设每行前后没有多余的空格字符。
+
+ 
+
+**示例：**
+
+假设 `file.txt` 内容如下：
+
+```
+987-123-4567
+123 456 7890
+(123) 456-7890
+```
+
+你的脚本应当输出下列有效的电话号码：
+
+```
+987-123-4567
+(123) 456-7890
+```
+
+通过次数21,312
+
+提交次数67,300
+
+**答案**
+
+可以使用egrep进行扩展正则匹配，也可以使用$grep -P$  PERL格式的正则匹配方法，注意特殊字符$()$需要进行转义。
+
+注意""不要丢了，其中的空格，()是普通字符，" "不要丢了
+^：表示行首，以...开始，这里表示以(xxx) 或者xxx-开始，注意空格
+()：选择操作符，要么是([0-9]\{3\}) ，要么是[0-9]\{3\}-
+|：或者连接操作符，表示或者
+[]：单字符占位，[0-9]表示一位数字
+{n}：匹配n位，[0-9]\{3\}匹配三位连续数字
+$：表示行尾，结束
+
+~~~shell
+egrep  '^(\([0-9]{3}\) |[0-9]{3}-)[0-9]{3}-[0-9]{4}$' file.txt
+grep -P '^(\d{3}-|\(\d{3}\) )\d{3}-\d{4}$' file.txt
+sed -n -r '/^([0-9]{3}-|\([0-9]{3}\) )[0-9]{3}-[0-9]{4}$/p' file.txt
+awk '/^([0-9]{3}-|\([0-9]{3}\) )[0-9]{3}-([0-9]{4})$/' file.txt
+~~~
+
+
+
+#### [195. 第十行](https://leetcode-cn.com/problems/tenth-line/)
+
+难度简单86收藏分享切换为英文接收动态反馈
+
+给定一个文本文件 `file.txt`，请只打印这个文件中的第十行。
+
+**示例:**
+
+假设 `file.txt` 有如下内容：
+
+```
+Line 1
+Line 2
+Line 3
+Line 4
+Line 5
+Line 6
+Line 7
+Line 8
+Line 9
+Line 10
+```
+
+你的脚本应当显示第十行：
+
+```
+Line 10
+```
+
+**说明:**
+\1. 如果文件少于十行，你应当输出什么？
+\2. 至少有三种不同的解法，请尝试尽可能多的方法来解题。
+
+通过次数29,311
+
+提交次数67,661
+
+**答案**
+
+~~~shell
+cat file.txt |awk '{if(NR==10) printf "%s\n",$0; }'
+awk 'NR==10' file.txt
+sed -n 10p file.txt
+awk '{if(NR==10) printf "%s\n",$0; }' file.txt
+awk 'NR==10{print $0}' file.txt
+~~~
+
+
+
+#### [192. 统计词频](https://leetcode-cn.com/problems/word-frequency/)
+
+难度中等136收藏分享切换为英文接收动态反馈
+
+写一个 bash 脚本以统计一个文本文件 `words.txt` 中每个单词出现的频率。
+
+为了简单起见，你可以假设：
+
+- `words.txt`只包括小写字母和 `' '` 。
+- 每个单词只由小写字母组成。
+- 单词间由一个或多个空格字符分隔。
+
+**示例:**
+
+假设 `words.txt` 内容如下：
+
+```
+the day is sunny the the
+the sunny is is
+```
+
+你的脚本应当输出（以词频降序排列）：
+
+```
+the 4
+is 3
+sunny 2
+day 1
+```
+
+**说明:**
+
+- 不要担心词频相同的单词的排序问题，每个单词出现的频率都是唯一的。
+- 你可以使用一行 [Unix pipes](http://tldp.org/HOWTO/Bash-Prog-Intro-HOWTO-4.html) 实现吗？
+
+通过次数17,891
+
+提交次数50,840
+
+**答案**
+
+~~~
+cat words.txt |xargs -n1|sort -n|uniq -c|sort -k1 -rn|awk -F ' ' '{printf "%s %s\n",$2,$1;}'
+cat words.txt | tr -s ' ' '\n'|sort|uniq -c |sort -r|awk '{print $2" "$1}'
+cat words.txt |tr -s ' ' '\n' |sort|uniq -c|sort -r|awk '{print $2,$1}'
+cat words.txt | tr ' ' '\n' | sed -e '/^$/d' | sort | uniq -c | sort -r | awk '{print $2, $1}'
+cat words.txt | xargs -n1 | sort | uniq -c | sort -rn -k1 | awk '{print $2, $1}'
+~~~
+
+
+
+#### [194. 转置文件](https://leetcode-cn.com/problems/transpose-file/)
+
+难度中等49收藏分享切换为英文接收动态反馈
+
+给定一个文件 `file.txt`，转置它的内容。
+
+你可以假设每行列数相同，并且每个字段由 `' '` 分隔。
+
+ 
+
+**示例：**
+
+假设 `file.txt` 文件内容如下：
+
+```
+name age
+alice 21
+ryan 30
+```
+
+应当输出：
+
+```
+name alice ryan
+age 21 30
+```
+
+通过次数8,433
+
+提交次数24,574
+
+**我的答案**
+
+直接通过bash脚本运行，注意控制空格和换行符的输出。每一行的最后一列之后不要再输出空格符，最后一行之后不要再输出换行符。echo不换行通过命令echo \-e "\c"​来表示。print会自动幻皇，printf不会换行。
+
+~~~shell
+row=$(cat file.txt|wc -l)
+if [[ $row -eq 0 ]];then
+        echo "empty line"
+        return 0
+fi
+col=$(head -1 file.txt|xargs -n1|wc -l)
+arr=()
+rp=$(cat file.txt)
+index=0
+for i in ${rp[@]};do
+        arr[index]=$i
+        let index++;
+done
+
+for ((i=0;i<col;i++));do
+        for ((j=0;j<row;j++));do
+                index=$((j*col+i))
+                echo -e "${arr[$index]}\c"
+                if((j!=row-1));then
+                        echo -e " \c"
+                fi
+        done
+        if((i!=col-1));then
+                echo
+        fi
+done
+~~~
+
+
+
+**awk命令解答**
+
+~~~shell
+awk '{ #这个大括号里的代码是 对正文的处理
+    # NF表示列数，NR表示已读的行数
+    # 注意for中的i从1开始，i前没有类型
+    for (i=1; i<=NF; i++){#对每一列
+        if(NR==1){       #如果是第一行
+            #将第i列的值存入res[i],$i表示第i列的值，i为数组的下标，以列序号为下标，
+            #数组不用定义可以直接使用
+            res[i]=$i;   
+        }
+        else{
+            #不是第一行时，将该行对应i列的值拼接到res[i]
+            res[i]=res[i] " " $i
+        }
+    }
+}
+# BEGIN{} 文件进行扫描前要执行的操作；END{} 文件扫描结束后要执行的操作。
+END{
+    #输出数组
+	for (i=1; i<=NF; i++){
+		print res[i]
+	}
+}' file.txt
+~~~
+
+
+
+**awk简单用法**
+
+awk后面参数如果跟的是文件，那么输出的内容是文件多少列的内容。比如文件内容如下：
+
+~~~
+name age
+alice 21
+ryan 30
+~~~
+
+awk  '{print $2}' file.txt输出内容就是第二列内容，xargs会把对应的换行变成一行。所以有
+
+~~~shell
+# Read from the file file.txt and print its transposed content to stdout.
+# 获取第一行，然后用wc来获取列数
+COLS=`head -1 file.txt | wc -w`
+# 使用awk依次去输出文件的每一列的参数，然后用xargs做转置
+for (( i = 1; i <= $COLS; i++ )); do
+    # 这里col就是在代码里要替换的参数，而它等于$i
+    awk -v col=$i '{print $col}' file.txt | xargs
+done
+~~~
+
+# 
+
