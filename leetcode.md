@@ -6489,7 +6489,7 @@ public int[][] merge(int[][] intervals) {
 
 难度中等377收藏分享切换为英文接收动态反馈
 
-给你一个** 无重叠的*** ，*按照区间起始端点排序的区间列表。
+给你一个无重叠的，按照区间起始端点排序的区间列表。
 
 在列表中插入一个新的区间，你需要确保列表中的区间仍然有序且不重叠（如果有必要的话，可以合并区间）。
 
@@ -6735,7 +6735,7 @@ public int uniquePathsWithObstacles(int[][] obstacleGrid) {
 
 **减少空间的方法**
 
-只记录前两行的数据，即使用数据$ans[2][m]$来进行数据统计
+只记录前两行的数据，即使用数据$ans[2][n]$来进行数据统计
 
 ~~~java
 public int uniquePathsWithObstacles(int[][] obstacleGrid) {
@@ -10214,7 +10214,214 @@ public int divide(int dividend, int divisor) {
 
 
 
+#### [43. 字符串相乘](https://leetcode-cn.com/problems/multiply-strings/)
 
+难度中等618收藏分享切换为英文接收动态反馈
+
+给定两个以字符串形式表示的非负整数 `num1` 和 `num2`，返回 `num1` 和 `num2` 的乘积，它们的乘积也表示为字符串形式。
+
+**示例 1:**
+
+```
+输入: num1 = "2", num2 = "3"
+输出: "6"
+```
+
+**示例 2:**
+
+```
+输入: num1 = "123", num2 = "456"
+输出: "56088"
+```
+
+**说明：**
+
+1. `num1` 和 `num2` 的长度小于110。
+2. `num1` 和 `num2` 只包含数字 `0-9`。
+3. `num1` 和 `num2` 均不以零开头，除非是数字 0 本身。
+4. **不能使用任何标准库的大数类型（比如 BigInteger）**或**直接将输入转换为整数来处理**。
+
+通过次数136,492
+
+提交次数305,444
+
+**传统笨方法，通过字符串拼接方式**
+
+代码效率较低，因为涉及到大量字符串的生成。基本想法就是类似于手动计算两个整数相乘的公式。将整数相乘进行分解，比如对于整数相乘
+
+$123\times1532$的计算过程，首先计算$123\times2$之后，计算下一个步骤$123\times3$并进行移位，与上一步骤所得的结果进行累加。如此反复。
+
+~~~java
+ public StringBuilder add(String num1,String num2){
+        StringBuilder result=new StringBuilder();
+        int i=num1.length()-1,j=num2.length()-1;
+        int carry=0;
+        if(num1.isEmpty()||num2.isEmpty()){
+            if(num1.isEmpty()){
+                result.append(num2);
+            }else{
+                result.append(num1);
+            }
+            return result;
+        }
+        while(i>=0||j>=0){
+            int sum=carry;
+            if(i>=0){
+                sum+=num1.charAt(i)-'0';
+                i--;
+            }
+            if(j>=0){
+                sum+=num2.charAt(j)-'0';
+                j--;
+            }
+            carry=sum>9?1:0;
+            result.insert(0,sum>9?sum-10:sum);
+        }
+        if(carry>0){
+            result.insert(0,carry);
+        }
+        return result;
+    }
+    public StringBuilder mulSingle(String num1,char ch){
+        StringBuilder result=new StringBuilder();
+        int carry=0;
+        StringBuilder zeroSuffix=new StringBuilder();
+        int singleInt=ch-'0';
+        for(int i=num1.length()-1;i>=0;i--){
+            int val=(num1.charAt(i)-'0')*singleInt;
+            String realVal=String.valueOf(val)+zeroSuffix;
+            result=add(result.toString(),realVal);
+            zeroSuffix.append('0');
+        }
+        return result;
+    }
+    public String multiply(String num1, String num2) {
+        if(num1.equals("0")||num2.equals("0")){
+            return "0";
+        }
+        StringBuilder zeroSuffix=new StringBuilder();
+        StringBuilder result=new StringBuilder();
+        for(int j=num2.length()-1;j>=0;j--){
+            StringBuilder realVal=mulSingle(num1,num2.charAt(j)).append(zeroSuffix);
+            result=add(result.toString(),realVal.toString());
+            zeroSuffix.append('0');
+        }
+        return result.toString();
+    }
+~~~
+
+
+
+**官方解答一，时间复杂度是$O(mn+n^2)$**
+
+~~~java
+public String multiply(String num1, String num2) {
+        if (num1.equals("0") || num2.equals("0")) {
+            return "0";
+        }
+        String ans = "0";
+        int m = num1.length(), n = num2.length();
+        for (int i = n - 1; i >= 0; i--) {
+            StringBuffer curr = new StringBuffer();
+            int add = 0;
+            for (int j = n - 1; j > i; j--) {
+                curr.append(0);
+            }
+            int y = num2.charAt(i) - '0';
+            for (int j = m - 1; j >= 0; j--) {
+                int x = num1.charAt(j) - '0';
+                int product = x * y + add;
+                curr.append(product % 10);
+                add = product / 10;
+            }
+            if (add != 0) {
+                curr.append(add % 10);
+            }
+            ans = addStrings(ans, curr.reverse().toString());
+        }
+        return ans;
+    }
+
+    public String addStrings(String num1, String num2) {
+        int i = num1.length() - 1, j = num2.length() - 1, add = 0;
+        StringBuffer ans = new StringBuffer();
+        while (i >= 0 || j >= 0 || add != 0) {
+            int x = i >= 0 ? num1.charAt(i) - '0' : 0;
+            int y = j >= 0 ? num2.charAt(j) - '0' : 0;
+            int result = x + y + add;
+            ans.append(result % 10);
+            add = result / 10;
+            i--;
+            j--;
+        }
+        ans.reverse();
+        return ans.toString();
+    }
+
+~~~
+
+官方解答2：时间复杂度是$O(mn)$
+
+采用字符数组，而不是采用字符串累加方式，避免大量字符串的创建
+
+~~~java
+public String multiply(String num1, String num2) {
+        if (num1.equals("0") || num2.equals("0")) {
+            return "0";
+        }
+        int m = num1.length(), n = num2.length();
+        int[] ansArr = new int[m + n];
+        for (int i = m - 1; i >= 0; i--) {
+            int x = num1.charAt(i) - '0';
+            for (int j = n - 1; j >= 0; j--) {
+                int y = num2.charAt(j) - '0';
+                ansArr[i + j + 1] += x * y;
+            }
+        }
+        for (int i = m + n - 1; i > 0; i--) {
+            ansArr[i - 1] += ansArr[i] / 10;
+            ansArr[i] %= 10;
+        }
+        int index = ansArr[0] == 0 ? 1 : 0;
+        StringBuffer ans = new StringBuffer();
+        while (index < m + n) {
+            ans.append(ansArr[index]);
+            index++;
+        }
+        return ans.toString();
+    }
+
+~~~
+
+**网上优秀答案**
+
+~~~java
+  public String multiply(String num1, String num2) {
+        if (num1.equals("0") || num2.equals("0")) {
+            return "0";
+        }
+        int m = num1.length(), n = num2.length();
+        int[] ansArr = new int[m + n];
+        for (int i = m - 1; i >= 0; i--) {
+            int x = num1.charAt(i) - '0';
+            for (int j = n - 1; j >= 0; j--) {
+                int y = num2.charAt(j) - '0';
+                ansArr[i + j + 1] += x * y;
+            }
+        }
+        for (int i = m + n - 1; i > 0; i--) {
+            ansArr[i - 1] += ansArr[i] / 10;
+            ansArr[i] %= 10;
+        }
+        int index = ansArr[0] == 0 ? 1 : 0;
+        StringBuffer ans = new StringBuffer();
+        while (index < m + n) {
+            ans.append(ansArr[index]);
+            index++;
+        }
+        return ans.toString();
+    }
+~~~
 
 
 
