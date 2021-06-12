@@ -10324,6 +10324,9 @@ public String multiply(String num1, String num2) {
         for (int i = n - 1; i >= 0; i--) {
             StringBuffer curr = new StringBuffer();
             int add = 0;
+            //移位个数,注意计算结果，curr是每一轮的计算结果的逆序
+            //从左到右是按照低位到高位的顺序，累计的时候要进行逆序
+            //这一个内循环耗时为N^2
             for (int j = n - 1; j > i; j--) {
                 curr.append(0);
             }
@@ -10686,7 +10689,7 @@ age 21 30
 
 **我的答案**
 
-直接通过bash脚本运行，注意控制空格和换行符的输出。每一行的最后一列之后不要再输出空格符，最后一行之后不要再输出换行符。echo不换行通过命令echo \-e "\c"​来表示。print会自动幻皇，printf不会换行。
+直接通过bash脚本运行，注意控制空格和换行符的输出。每一行的最后一列之后不要再输出空格符，最后一行之后不要再输出换行符。echo不换行通过命令echo \-e "\c"​来表示。print会自动换行，printf不会换行。
 
 ~~~shell
 row=$(cat file.txt|wc -l)
@@ -10700,7 +10703,7 @@ rp=$(cat file.txt)
 index=0
 for i in ${rp[@]};do
         arr[index]=$i
-        let index++;
+        let index++
 done
 
 for ((i=0;i<col;i++));do
