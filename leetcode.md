@@ -1,5 +1,33 @@
 # leetcode
 
+## 预备知识
+
+### 类型转换常用方法
+
+~~~java
+	int[] data = {4,5,6,7,8};
+
+    // int[]转List<Integer>
+    List<Integer> list1 = Arrays.stream(data).boxed().collect(Collectors.toList());
+
+    // int[]转Integer[]
+    Integer[] integers1 = Arrays.stream(data).boxed().toArray(Integer[]::new);
+
+    //List<Integer> 转int[]
+    int[] arr1 = list1.stream().mapToInt(Integer::intValue).toArray();
+
+    //List<Integer> 转Integer[]
+    Integer[] integers2 = list1.toArray(new Integer[0]);
+
+    //Integer[] 转int[]
+    int[] arr2 = Arrays.stream(integers1).mapToInt(Integer::intValue).toArray();
+
+    //Integer[] 转 List<Integer>
+    List<Integer> list2 = Arrays.asList(integers1);
+~~~
+
+
+
 ## 算法alibaba
 
 ### tree
@@ -292,6 +320,8 @@ class Solution {
 
 ##### 非递归算法实现
 
+该算法实际上是递归算法展开的形式，遇到节点就访问，不断将当前节点压入栈。
+
 ~~~java
 public List<Integer> preorderTraversal(TreeNode root) {
         Stack<TreeNode> st=new Stack();
@@ -306,6 +336,93 @@ public List<Integer> preorderTraversal(TreeNode root) {
             curP=st.pop().right;
         }
         return result;
+    }
+~~~
+
+
+
+**非递归解法二**
+
+~~~java
+private static List<Integer> postorderTraversal(TreeNode root) {
+        List<Integer> res = new ArrayList<>();
+        if (root == null) {
+            return res;
+        }
+        Deque<TreeNode> stack = new LinkedList<>();
+        stack.push(root);
+        while (!stack.isEmpty()) {
+            TreeNode temp = stack.poll();
+            res.add(temp.val);
+            if (temp.right != null) {
+                stack.push(temp.right);
+            }
+            if (temp.left != null) {
+                stack.push(temp.left);
+            }
+        }
+        return res;
+    }
+~~~
+
+
+
+**非递归遍历三**
+
+~~~java
+ private enum Action {
+        /**
+         * 如果当前结点有孩子结点（左右孩子结点至少存在一个），执行 GO
+         */
+        GO,
+        /**
+         * 添加到结果集（真正输出这个结点）
+         */
+        ADDTORESULT
+    }
+
+    private class Command {
+        private Action action;
+        private TreeNode node;
+
+        /**
+         * 将动作类与结点类封装起来
+         *
+         * @param action
+         * @param node
+         */
+        public Command(Action action, TreeNode node) {
+            this.action = action;
+            this.node = node;
+        }
+    }
+
+    public List<Integer> preorderTraversal(TreeNode root) {
+        List<Integer> res = new ArrayList<>();
+        if (root == null) {
+            return res;
+        }
+
+        Deque<Command> stack = new ArrayDeque<>();
+        stack.addLast(new Command(Action.GO, root));
+        while (!stack.isEmpty()) {
+            Command command = stack.removeLast();
+            if (command.action == Action.ADDTORESULT) {
+                res.add(command.node.val);
+            } else {
+                // 特别注意：以下的顺序与递归执行的顺序反着来，即：倒过来写的结果
+                // 前序遍历：根结点、左子树、右子树、
+                // 添加到栈的顺序：右子树、左子树、根结点
+                if (command.node.right != null) {
+                    stack.add(new Command(Action.GO, command.node.right));
+                }
+                if (command.node.left != null) {
+                    stack.add(new Command(Action.GO, command.node.left));
+                }
+                stack.add(new Command(Action.ADDTORESULT, command.node));
+            }
+        }
+        return res;
     }
 ~~~
 
@@ -12173,307 +12290,3133 @@ public ListNode mergeKLists(ListNode[] lists) {
 
 
 
+#### [172. 阶乘后的零](https://leetcode-cn.com/problems/factorial-trailing-zeroes/)
+
+难度简单495
+
+给定一个整数 *n*，返回 *n*! 结果尾数中零的数量。
+
+**示例 1:**
+
+```
+输入: 3
+输出: 0
+解释: 3! = 6, 尾数中没有零。
+```
+
+**示例 2:**
+
+```
+输入: 5
+输出: 1
+解释: 5! = 120, 尾数中有 1 个零.
+```
+
+**说明:** 你算法的时间复杂度应为 *O*(log *n*) 。
+
+**我的解法**
+
+其实就是找出数字$1...n$有多少个被5整除的次数，比如25能够兑换成2个5。
+
+~~~
+  public int trailingZeroes(int n) {
+       int ans=0;
+       while((n=n/5)>=1){
+           ans+=n;
+       }
+       return ans;
+    }
+~~~
 
 
 
+#### [232. 用栈实现队列](https://leetcode-cn.com/problems/implement-queue-using-stacks/)
 
+难度简单453
 
+请你仅使用两个栈实现先入先出队列。队列应当支持一般队列支持的所有操作（`push`、`pop`、`peek`、`empty`）：
 
+实现 `MyQueue` 类：
 
+- `void push(int x)` 将元素 x 推到队列的末尾
+- `int pop()` 从队列的开头移除并返回元素
+- `int peek()` 返回队列开头的元素
+- `boolean empty()` 如果队列为空，返回 `true` ；否则，返回 `false`
 
+ 
 
+**说明：**
 
+- 你只能使用标准的栈操作 —— 也就是只有 `push to top`, `peek/pop from top`, `size`, 和 `is empty` 操作是合法的。
+- 你所使用的语言也许不支持栈。你可以使用 list 或者 deque（双端队列）来模拟一个栈，只要是标准的栈操作即可。
 
+ 
 
+**进阶：**
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-## shell
-
-#### [193. 有效电话号码](https://leetcode-cn.com/problems/valid-phone-numbers/)
-
-难度简单66收藏分享切换为英文接收动态反馈
-
-给定一个包含电话号码列表（一行一个电话号码）的文本文件 `file.txt`，写一个单行 bash 脚本输出所有有效的电话号码。
-
-你可以假设一个有效的电话号码必须满足以下两种格式： (xxx) xxx-xxxx 或 xxx-xxx-xxxx。（x 表示一个数字）
-
-你也可以假设每行前后没有多余的空格字符。
+- 你能否实现每个操作均摊时间复杂度为 `O(1)` 的队列？换句话说，执行 `n` 个操作的总时间复杂度为 `O(n)` ，即使其中一个操作可能花费较长时间。
 
  
 
 **示例：**
 
-假设 `file.txt` 内容如下：
-
 ```
-987-123-4567
-123 456 7890
-(123) 456-7890
-```
+输入：
+["MyQueue", "push", "push", "peek", "pop", "empty"]
+[[], [1], [2], [], [], []]
+输出：
+[null, null, null, 1, 1, false]
 
-你的脚本应当输出下列有效的电话号码：
-
-```
-987-123-4567
-(123) 456-7890
-```
-
-通过次数21,312
-
-提交次数67,300
-
-**答案**
-
-可以使用egrep进行扩展正则匹配，也可以使用$grep -P$  PERL格式的正则匹配方法，注意特殊字符$()$需要进行转义。
-
-注意""不要丢了，其中的空格，()是普通字符，" "不要丢了
-^：表示行首，以...开始，这里表示以(xxx) 或者xxx-开始，注意空格
-()：选择操作符，要么是([0-9]\{3\}) ，要么是[0-9]\{3\}-
-|：或者连接操作符，表示或者
-[]：单字符占位，[0-9]表示一位数字
-{n}：匹配n位，[0-9]\{3\}匹配三位连续数字
-$：表示行尾，结束
-
-~~~shell
-egrep  '^(\([0-9]{3}\) |[0-9]{3}-)[0-9]{3}-[0-9]{4}$' file.txt
-grep -P '^(\d{3}-|\(\d{3}\) )\d{3}-\d{4}$' file.txt
-sed -n -r '/^([0-9]{3}-|\([0-9]{3}\) )[0-9]{3}-[0-9]{4}$/p' file.txt
-awk '/^([0-9]{3}-|\([0-9]{3}\) )[0-9]{3}-([0-9]{4})$/' file.txt
-~~~
-
-
-
-#### [195. 第十行](https://leetcode-cn.com/problems/tenth-line/)
-
-难度简单86收藏分享切换为英文接收动态反馈
-
-给定一个文本文件 `file.txt`，请只打印这个文件中的第十行。
-
-**示例:**
-
-假设 `file.txt` 有如下内容：
-
-```
-Line 1
-Line 2
-Line 3
-Line 4
-Line 5
-Line 6
-Line 7
-Line 8
-Line 9
-Line 10
+解释：
+MyQueue myQueue = new MyQueue();
+myQueue.push(1); // queue is: [1]
+myQueue.push(2); // queue is: [1, 2] (leftmost is front of the queue)
+myQueue.peek(); // return 1
+myQueue.pop(); // return 1, queue is [2]
+myQueue.empty(); // return false
 ```
 
-你的脚本应当显示第十行：
 
-```
-Line 10
-```
-
-**说明:**
-\1. 如果文件少于十行，你应当输出什么？
-\2. 至少有三种不同的解法，请尝试尽可能多的方法来解题。
-
-通过次数29,311
-
-提交次数67,661
-
-**答案**
-
-~~~shell
-cat file.txt |awk '{if(NR==10) printf "%s\n",$0; }'
-awk 'NR==10' file.txt
-sed -n 10p file.txt
-awk '{if(NR==10) printf "%s\n",$0; }' file.txt
-awk 'NR==10{print $0}' file.txt
-~~~
-
-
-
-#### [192. 统计词频](https://leetcode-cn.com/problems/word-frequency/)
-
-难度中等136收藏分享切换为英文接收动态反馈
-
-写一个 bash 脚本以统计一个文本文件 `words.txt` 中每个单词出现的频率。
-
-为了简单起见，你可以假设：
-
-- `words.txt`只包括小写字母和 `' '` 。
-- 每个单词只由小写字母组成。
-- 单词间由一个或多个空格字符分隔。
-
-**示例:**
-
-假设 `words.txt` 内容如下：
-
-```
-the day is sunny the the
-the sunny is is
-```
-
-你的脚本应当输出（以词频降序排列）：
-
-```
-the 4
-is 3
-sunny 2
-day 1
-```
-
-**说明:**
-
-- 不要担心词频相同的单词的排序问题，每个单词出现的频率都是唯一的。
-- 你可以使用一行 [Unix pipes](http://tldp.org/HOWTO/Bash-Prog-Intro-HOWTO-4.html) 实现吗？
-
-通过次数17,891
-
-提交次数50,840
-
-**答案**
-
-~~~
-cat words.txt |xargs -n1|sort -n|uniq -c|sort -k1 -rn|awk -F ' ' '{printf "%s %s\n",$2,$1;}'
-cat words.txt | tr -s ' ' '\n'|sort|uniq -c |sort -r|awk '{print $2" "$1}'
-cat words.txt |tr -s ' ' '\n' |sort|uniq -c|sort -r|awk '{print $2,$1}'
-cat words.txt | tr ' ' '\n' | sed -e '/^$/d' | sort | uniq -c | sort -r | awk '{print $2, $1}'
-cat words.txt | xargs -n1 | sort | uniq -c | sort -rn -k1 | awk '{print $2, $1}'
-~~~
-
-
-
-#### [194. 转置文件](https://leetcode-cn.com/problems/transpose-file/)
-
-难度中等49收藏分享切换为英文接收动态反馈
-
-给定一个文件 `file.txt`，转置它的内容。
-
-你可以假设每行列数相同，并且每个字段由 `' '` 分隔。
 
  
 
-**示例：**
+**提示：**
 
-假设 `file.txt` 文件内容如下：
+- `1 <= x <= 9`
+- 最多调用 `100` 次 `push`、`pop`、`peek` 和 `empty`
+- 假设所有操作都是有效的 （例如，一个空的队列不会调用 `pop` 或者 `peek` 操作）
 
-```
-name age
-alice 21
-ryan 30
-```
+通过次数145,727
 
-应当输出：
+提交次数211,078
 
-```
-name alice ryan
-age 21 30
-```
+**我的解法**
 
-通过次数8,433
+代码里面有详细的注释，不说明了。
 
-提交次数24,574
+~~~java
+class MyQueue {
 
-**我的答案**
+    //使用两个栈结构来实现，栈1表示队尾，栈2表示队头
+    //添加元素时候，从栈1进去，取的元素从栈2取，如果栈2为空，将栈1的所有元素转移到栈2
+    Stack<Integer> s1=new Stack();
+    Stack<Integer> s2=new Stack();
+    /** Initialize your data structure here. */
+    public MyQueue() {
 
-直接通过bash脚本运行，注意控制空格和换行符的输出。每一行的最后一列之后不要再输出空格符，最后一行之后不要再输出换行符。echo不换行通过命令echo \-e "\c"​来表示。print会自动换行，printf不会换行。
-
-~~~shell
-row=$(cat file.txt|wc -l)
-if [[ $row -eq 0 ]];then
-        echo "empty line"
-        return 0
-fi
-col=$(head -1 file.txt|xargs -n1|wc -l)
-arr=()
-rp=$(cat file.txt)
-index=0
-for i in ${rp[@]};do
-        arr[index]=$i
-        let index++
-done
-
-for ((i=0;i<col;i++));do
-        for ((j=0;j<row;j++));do
-                index=$((j*col+i))
-                echo -e "${arr[$index]}\c"
-                if((j!=row-1));then
-                        echo -e " \c"
-                fi
-        done
-        if((i!=col-1));then
-                echo
-        fi
-done
-~~~
-
-
-
-**awk命令解答**
-
-~~~shell
-awk '{ #这个大括号里的代码是 对正文的处理
-    # NF表示列数，NR表示已读的行数
-    # 注意for中的i从1开始，i前没有类型
-    for (i=1; i<=NF; i++){#对每一列
-        if(NR==1){       #如果是第一行
-            #将第i列的值存入res[i],$i表示第i列的值，i为数组的下标，以列序号为下标，
-            #数组不用定义可以直接使用
-            res[i]=$i;   
+    }
+    
+    /** Push element x to the back of queue. */
+    public void push(int x) {
+        s1.push(x);
+    }
+    
+    /** Removes the element from in front of queue and returns that element. */
+    public int pop() {
+        if(!s2.isEmpty()){
+            return s2.pop();
         }
-        else{
-            #不是第一行时，将该行对应i列的值拼接到res[i]
-            res[i]=res[i] " " $i
+        transfer();
+        return s2.pop();
+    }
+    public void transfer(){
+        while(!s1.isEmpty()){
+            s2.push(s1.pop());
         }
     }
+    /** Get the front element. */
+    public int peek() {
+        if(!s2.isEmpty()){
+            return s2.peek();
+        }
+        transfer();
+        return s2.peek();
+    }
+    
+    /** Returns whether the queue is empty. */
+    public boolean empty() {
+        return s1.isEmpty()&&s2.isEmpty();
+    }
 }
-# BEGIN{} 文件进行扫描前要执行的操作；END{} 文件扫描结束后要执行的操作。
-END{
-    #输出数组
-	for (i=1; i<=NF; i++){
-		print res[i]
-	}
-}' file.txt
+
+/**
+ * Your MyQueue object will be instantiated and called as such:
+ * MyQueue obj = new MyQueue();
+ * obj.push(x);
+ * int param_2 = obj.pop();
+ * int param_3 = obj.peek();
+ * boolean param_4 = obj.empty();
+ */
 ~~~
 
 
 
-**awk简单用法**
+#### [300. 最长递增子序列](https://leetcode-cn.com/problems/longest-increasing-subsequence/)
 
-awk后面参数如果跟的是文件，那么输出的内容是文件多少列的内容。比如文件内容如下：
+难度中等1790
+
+给你一个整数数组 `nums` ，找到其中最长严格递增子序列的长度。
+
+子序列是由数组派生而来的序列，删除（或不删除）数组中的元素而不改变其余元素的顺序。例如，`[3,6,2,7]` 是数组 `[0,3,1,6,2,2,7]` 的子序列。
+
+**示例 1：**
+
+```
+输入：nums = [10,9,2,5,3,7,101,18]
+输出：4
+解释：最长递增子序列是 [2,3,7,101]，因此长度为 4 。
+```
+
+**示例 2：**
+
+```
+输入：nums = [0,1,0,3,2,3]
+输出：4
+```
+
+**示例 3：**
+
+```
+输入：nums = [7,7,7,7,7,7,7]
+输出：1
+```
+
+ 
+
+**提示：**
+
+- `1 <= nums.length <= 2500`
+- `-104 <= nums[i] <= 104`
+
+ 
+
+**进阶：**
+
+- 你可以设计时间复杂度为 `O(n2)` 的解决方案吗？
+- 你能将算法的时间复杂度降低到 `O(n log(n))` 吗?
+
+通过次数321,940
+
+提交次数632,904
+
+**简单dp算法**
+
+~~~java
+ public int lengthOfLIS(int[] nums) {
+        int ans=1;
+        int[] dp= new int[nums.length];
+        dp[0]=1;
+        for(int i=1;i<nums.length;i++){
+            dp[i]=1;
+            for(int j=0;j<i;j++){
+                if(nums[j]<nums[i]){
+                    dp[i]=Math.max(dp[j]+1,dp[i]);
+                }
+            }
+            ans=Math.max(ans,dp[i]);
+        }
+        return ans;
+    }
+~~~
+
+
+
+#### [387. 字符串中的第一个唯一字符](https://leetcode-cn.com/problems/first-unique-character-in-a-string/)
+
+难度简单425
+
+给定一个字符串，找到它的第一个不重复的字符，并返回它的索引。如果不存在，则返回 -1。
+
+ 
+
+**示例：**
+
+```
+s = "leetcode"
+返回 0
+
+s = "loveleetcode"
+返回 2
+```
+
+ 
+
+**提示：**你可以假定该字符串只包含小写字母。
+
+通过次数205,124
+
+提交次数387,718
+
+**我的解答**
+
+最直接的做法是遍历整个字符串，使用一个有序map结构统计每个字符出现的次数，然后顺序遍历map找到第一个次数为1的字符，如果有的话那就返回当前索引。还有一种方式是直接用字符数组来进行统计，相对于map结构来说更简单，时间复杂度严格是$O(n)$，代码如下
+
+~~~java
+public int firstUniqChar(String s) {
+        int[] flag=new int[128];
+        Arrays.fill(flag,-1);
+        for(int i=0;i<s.length();i++){
+            int ch=s.charAt(i);
+            if(flag[ch]==-1){
+                //首次遇到，设置为0
+                flag[ch]=0;
+            }else {
+                //重复不止一次
+                flag[ch]=1;
+            }
+        }
+        for(int i=0;i<s.length();i++){
+            int ch=s.charAt(i);
+            if(flag[ch]==0){
+                return i;
+            }
+        }
+        return -1;
+    }
+~~~
+
+
+
+#### [13. 罗马数字转整数](https://leetcode-cn.com/problems/roman-to-integer/)
+
+难度简单1453
+
+罗马数字包含以下七种字符: `I`， `V`， `X`， `L`，`C`，`D` 和 `M`。
+
+```
+字符          数值
+I             1
+V             5
+X             10
+L             50
+C             100
+D             500
+M             1000
+```
+
+例如， 罗马数字 2 写做 `II` ，即为两个并列的 1。12 写做 `XII` ，即为 `X` + `II` 。 27 写做 `XXVII`, 即为 `XX` + `V` + `II` 。
+
+通常情况下，罗马数字中小的数字在大的数字的右边。但也存在特例，例如 4 不写做 `IIII`，而是 `IV`。数字 1 在数字 5 的左边，所表示的数等于大数 5 减小数 1 得到的数值 4 。同样地，数字 9 表示为 `IX`。这个特殊的规则只适用于以下六种情况：
+
+- `I` 可以放在 `V` (5) 和 `X` (10) 的左边，来表示 4 和 9。
+- `X` 可以放在 `L` (50) 和 `C` (100) 的左边，来表示 40 和 90。 
+- `C` 可以放在 `D` (500) 和 `M` (1000) 的左边，来表示 400 和 900。
+
+给定一个罗马数字，将其转换成整数。输入确保在 1 到 3999 的范围内。
+
+ 
+
+**示例 1:**
+
+```
+输入: "III"
+输出: 3
+```
+
+**示例 2:**
+
+```
+输入: "IV"
+输出: 4
+```
+
+**示例 3:**
+
+```
+输入: "IX"
+输出: 9
+```
+
+**示例 4:**
+
+```
+输入: "LVIII"
+输出: 58
+解释: L = 50, V= 5, III = 3.
+```
+
+**示例 5:**
+
+```
+输入: "MCMXCIV"
+输出: 1994
+解释: M = 1000, CM = 900, XC = 90, IV = 4.
+```
+
+ 
+
+**提示：**
+
+- `1 <= s.length <= 15`
+- `s` 仅含字符 `('I', 'V', 'X', 'L', 'C', 'D', 'M')`
+- 题目数据保证 `s` 是一个有效的罗马数字，且表示整数在范围 `[1, 3999]` 内
+- 题目所给测试用例皆符合罗马数字书写规则，不会出现跨位等情况。
+- IL 和 IM 这样的例子并不符合题目要求，49 应该写作 XLIX，999 应该写作 CMXCIX 。
+- 关于罗马数字的详尽书写规则，可以参考 [罗马数字 - Mathematics ](https://b2b.partcommunity.com/community/knowledge/zh_CN/detail/10753/罗马数字#knowledge_article)。
+
+通过次数441,827
+
+提交次数697,718
+
+**我的解答**
+
+常规解法，比较直接，优先匹配双字符。
+
+~~~java
+ public int romanToInt(String s) {
+        int[] values = {1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1};    
+        String[] symbols = {"M","CM","D","CD","C","XC","L","XL","X","IX","V","IV","I"};
+        List<String> twoSymbolChar=new ArrayList();
+        twoSymbolChar.add("CM");
+        twoSymbolChar.add("CD");
+        twoSymbolChar.add("XC");
+        twoSymbolChar.add("XL");
+        twoSymbolChar.add("IX");
+        twoSymbolChar.add("IV");
+        int i = 0,j=0;
+        int ans=0;
+        for(i=0;i<s.length();i++){
+            String ch=s.substring(i,i+1);
+            //优先匹配两字符
+            if(i<s.length()-1&&twoSymbolChar.contains(s.substring(i,i+2))){
+                ch=s.substring(i,i+2);
+                i++;
+            }
+            while(j<symbols.length){
+                if(ch.equals(symbols[j])){
+                    ans+=values[j];
+                    break;
+                }
+                j++;
+            }
+        }
+        return ans;
+    }
+~~~
+
+
+
+#### [141. 环形链表](https://leetcode-cn.com/problems/linked-list-cycle/)
+
+难度简单1167收藏分享切换为英文接收动态反馈
+
+给定一个链表，判断链表中是否有环。
+
+如果链表中有某个节点，可以通过连续跟踪 `next` 指针再次到达，则链表中存在环。 为了表示给定链表中的环，我们使用整数 `pos` 来表示链表尾连接到链表中的位置（索引从 0 开始）。 如果 `pos` 是 `-1`，则在该链表中没有环。**注意：`pos` 不作为参数进行传递**，仅仅是为了标识链表的实际情况。
+
+如果链表中存在环，则返回 `true` 。 否则，返回 `false` 。
+
+ 
+
+**进阶：**
+
+你能用 *O(1)*（即，常量）内存解决此问题吗？
+
+ 
+
+**示例 1：**
+
+![img](https://assets.leetcode-cn.com/aliyun-lc-upload/uploads/2018/12/07/circularlinkedlist.png)
+
+```
+输入：head = [3,2,0,-4], pos = 1
+输出：true
+解释：链表中有一个环，其尾部连接到第二个节点。
+```
+
+**示例 2：**
+
+![img](https://assets.leetcode-cn.com/aliyun-lc-upload/uploads/2018/12/07/circularlinkedlist_test2.png)
+
+```
+输入：head = [1,2], pos = 0
+输出：true
+解释：链表中有一个环，其尾部连接到第一个节点。
+```
+
+**示例 3：**
+
+![img](https://assets.leetcode-cn.com/aliyun-lc-upload/uploads/2018/12/07/circularlinkedlist_test3.png)
+
+```
+输入：head = [1], pos = -1
+输出：false
+解释：链表中没有环。
+```
+
+ 
+
+**提示：**
+
+- 链表中节点的数目范围是 `[0, 104]`
+- `-105 <= Node.val <= 105`
+- `pos` 为 `-1` 或者链表中的一个 **有效索引** 。
+
+通过次数486,986
+
+提交次数951,365
+
+**我的解法**
+
+简单的快慢指针问题。
+
+~~~java
+ public boolean hasCycle(ListNode head) {
+       //简单的快慢指针问题
+       if(head==null||head.next==null) {
+           return false;
+       }
+       ListNode fast=head,slow=head;
+       while(fast!=null&&fast.next!=null){
+           slow=slow.next;
+           fast=fast.next.next;
+           if(fast==slow){
+               return true;
+           }
+       }
+       return false;
+    }
+~~~
+
+
+
+#### [51. N 皇后](https://leetcode-cn.com/problems/n-queens/)
+
+难度困难972收藏分享切换为英文接收动态反馈
+
+**n 皇后问题** 研究的是如何将 `n` 个皇后放置在 `n×n` 的棋盘上，并且使皇后彼此之间不能相互攻击。
+
+给你一个整数 `n` ，返回所有不同的 **n 皇后问题** 的解决方案。
+
+每一种解法包含一个不同的 **n 皇后问题** 的棋子放置方案，该方案中 `'Q'` 和 `'.'` 分别代表了皇后和空位。
+
+ 
+
+**示例 1：**
+
+![img](https://assets.leetcode.com/uploads/2020/11/13/queens.jpg)
+
+```
+输入：n = 4
+输出：[[".Q..","...Q","Q...","..Q."],["..Q.","Q...","...Q",".Q.."]]
+解释：如上图所示，4 皇后问题存在两个不同的解法。
+```
+
+**示例 2：**
+
+```
+输入：n = 1
+输出：[["Q"]]
+```
+
+ 
+
+**提示：**
+
+- `1 <= n <= 9`
+- 皇后彼此不能相互攻击，也就是说：任何两个皇后都不能处于同一条横行、纵行或斜线上。
+
+通过次数142,781
+
+提交次数193,324
+
+**回溯方法和减枝方法的运用**
+
+皇后位置冲突的条件一共有3中，分别是行冲突、列冲突以及斜线冲突，行列冲突比较好解决，斜线冲突又如何表示，从定义上来说，斜线冲突表示的是两个皇后所在的位置构成的直线斜率是1或者-1。假设两个皇后位置冲突，索引位置分别是$(i,j)$和$(m,n)$，那么满足如下定义：字符输入使用的是字符数组
+$$
+n-j=(-1)\times(m-i)等价于m+n=i+j\\
+或者
+n-j=m-i等价于n+i=m+j
+$$
+
+~~~java
+public void nQueens(int row,List<int[]> result,int n){
+        if(row==n){
+            ans.add(new ArrayList(result));
+            return;
+        }
+        for(int j=0;j<n;j++){
+            boolean conflict=false;
+            for(int[] loc:result){
+                //竖线或者斜线冲突
+                if(loc[1]==j||row+j==loc[0]+loc[1]||row+loc[1]==j+loc[0]){
+                    conflict=true;
+                    break;
+                }
+            }
+            if(!conflict){
+                result.add(new int[]{row,j});
+                nQueens(row+1,result,n);
+                result.remove(result.size()-1);
+            }
+        }
+    }
+
+    public List<List<String>> solveNQueens(int n) {
+        nQueens(0,new ArrayList(),n);
+        List<List<String>> allPath=new ArrayList();
+        //替换Q
+        for(List<int[]> path:ans){
+            List<String> singlePath=new ArrayList();
+            for(int[] rowLoc:path){
+                char[] chArr=new char[n];
+                Arrays.fill(chArr,'.');
+                chArr[rowLoc[1]]='Q';
+                singlePath.add(new String(chArr));
+            }
+            allPath.add(singlePath);
+        }
+        return allPath;
+    }
+~~~
+
+
+
+**其它解法（直接愿地修改字符）**
+
+~~~java
+  List<List<String>> res = new ArrayList<>();   //记录最终结果
+
+    public List<List<String>> solveNQueens(int n) {
+        char[][] chessboard = new char[n][n];
+        //初始化棋盘
+        for (char[] c : chessboard) {
+            Arrays.fill(c, '.');
+        }
+        backTrack(n, 0, chessboard);
+        return res;
+    }
+
+    public void backTrack(int n, int row, char[][] chessboard) {
+        if (row == n) {    //递归终止条件
+             List<String> list = new ArrayList<>();
+              for (char[] c : chessboard) {
+                    list.add(String.copyValueOf(c));
+                }
+            res.add(list);
+            return;
+        }
+
+        for (int col = 0;col < n; ++col) {
+            //排除不合法选择
+            if (isValid (row, col, n, chessboard)) {
+                //做选择，放置皇后
+                chessboard[row][col] = 'Q';   
+                //进入下一个决策
+                backTrack(n, row+1, chessboard);
+                //撤销选择，撤销皇后  
+                chessboard[row][col] = '.';
+            }
+        }
+
+    }
+
+    //检查是否可以在 chessboard[row][col]放置皇后
+    public boolean isValid(int row, int col, int n, char[][] chessboard) {
+        // 检查列
+        for (int i=0; i<n; ++i) {  //剪枝
+            if (chessboard[i][col] == 'Q') {
+                return false;
+            }
+        }
+        // 检查45度对角线
+        for (int i=row-1, j=col-1; i>=0 && j>=0; i--, j--) {
+            if (chessboard[i][j] == 'Q') {
+                return false;
+            }
+        }
+        // 检查135度对角线
+        for (int i=row-1, j=col+1; i>=0 && j<=n-1; i--, j++) {
+            if (chessboard[i][j] == 'Q') {
+                return false;
+            }
+        }
+        return true;
+    }
+~~~
+
+
+
+#### [18. 四数之和](https://leetcode-cn.com/problems/4sum/)
+
+难度中等919收藏分享切换为英文接收动态反馈
+
+给你一个由 `n` 个整数组成的数组 `nums` ，和一个目标值 `target` 。请你找出并返回满足下述全部条件且不重复的四元组 `[nums[a], nums[b], nums[c], nums[d]]` ：
+
+- `0 <= a, b, c, d < n`
+- `a`、`b`、`c` 和 `d` **互不相同**
+- `nums[a] + nums[b] + nums[c] + nums[d] == target`
+
+你可以按 **任意顺序** 返回答案 。
+
+ 
+
+**示例 1：**
+
+```
+输入：nums = [1,0,-1,0,-2,2], target = 0
+输出：[[-2,-1,1,2],[-2,0,0,2],[-1,0,0,1]]
+```
+
+**示例 2：**
+
+```
+输入：nums = [2,2,2,2,2], target = 8
+输出：[[2,2,2,2]]
+```
+
+ 
+
+**提示：**
+
+- `1 <= nums.length <= 200`
+- `-109 <= nums[i] <= 109`
+- `-109 <= target <= 109`
+
+通过次数206,634
+
+提交次数512,530
+
+**通用解法**
+
+从两数之和、三数之和一直到四数之和，有一个通用的解法（两数之和算法复杂度是$o(n)$），即求解k个数的和，使得这k个数的和等于目标数。通用的解法步骤是将数组进行排序，然后依次递归求解k个数的和、k-1个数的和一直到2个数的和。
+
+**注意数据的去重**
+
+~~~java
+ public List<List<Integer>> fourSum(int[] nums, int target) {
+        Arrays.sort(nums);
+        return getKthSum(nums,0,target,4);
+    }
+    public List<List<Integer>> twoSum(int[] nums,int start,int target){
+        List<List<Integer>> ans=new ArrayList();
+        int end=nums.length-1;
+        while(start<end){
+            int sum=nums[start]+nums[end];
+            if(target>sum){
+                start++;
+            }else if(target<sum){
+                end--;
+            }else{
+                List<Integer> item=new ArrayList();
+                item.add(nums[start]);
+                item.add(nums[end]);
+                ans.add(item);
+                start++;
+                end--;
+                while(start<end&&nums[start-1]==nums[start]){
+                    start++;
+                }
+                while(start<end&&nums[end+1]==nums[end]){
+                    end--;
+                }
+            }
+        }
+        return ans;
+    }
+    /**
+      k个数的和等于target，要求nums是排序的并且k>=2
+      
+     */
+    public List<List<Integer>> getKthSum(int[] nums,int start,int target,int k){
+        if(k==2){
+            return twoSum(nums,start,target);
+        }
+        List<List<Integer>> ans=new ArrayList();
+        for(int i=start;i+k<=nums.length;i++){
+            //去掉重复
+            if(i>start&&nums[i]==nums[i-1]){
+                continue;
+            }
+            //减枝
+            if(nums[i]>target&&nums[i]>=0){
+                continue;
+            }
+            List<List<Integer>> preSum=getKthSum(nums,i+1,target-nums[i],k-1);
+            if(!preSum.isEmpty()){
+                for(List<Integer> entry:preSum){
+                    entry.add(0,nums[i]);
+                    ans.add(entry);
+                }
+            }
+        }
+        return ans;
+    }
+~~~
+
+
+
+**官方解答（多增加了一个减枝）**
+
+~~~java
+ public List<List<Integer>> fourSum(int[] nums, int target) {
+        List<List<Integer>> quadruplets = new ArrayList<List<Integer>>();
+        if (nums == null || nums.length < 4) {
+            return quadruplets;
+        }
+        Arrays.sort(nums);
+        int length = nums.length;
+        for (int i = 0; i < length - 3; i++) {
+            if (i > 0 && nums[i] == nums[i - 1]) {
+                continue;
+            }
+            //增加了这个减枝
+            if (nums[i] + nums[i + 1] + nums[i + 2] + nums[i + 3] > target) {
+                break;
+            }
+            if (nums[i] + nums[length - 3] + nums[length - 2] + nums[length - 1] < target) {
+                continue;
+            }
+            for (int j = i + 1; j < length - 2; j++) {
+                if (j > i + 1 && nums[j] == nums[j - 1]) {
+                    continue;
+                }
+                if (nums[i] + nums[j] + nums[j + 1] + nums[j + 2] > target) {
+                    break;
+                }
+                if (nums[i] + nums[j] + nums[length - 2] + nums[length - 1] < target) {
+                    continue;
+                }
+                int left = j + 1, right = length - 1;
+                while (left < right) {
+                    int sum = nums[i] + nums[j] + nums[left] + nums[right];
+                    if (sum == target) {
+                        quadruplets.add(Arrays.asList(nums[i], nums[j], nums[left], nums[right]));
+                        while (left < right && nums[left] == nums[left + 1]) {
+                            left++;
+                        }
+                        left++;
+                        while (left < right && nums[right] == nums[right - 1]) {
+                            right--;
+                        }
+                        right--;
+                    } else if (sum < target) {
+                        left++;
+                    } else {
+                        right--;
+                    }
+                }
+            }
+        }
+        return quadruplets;
+    }
 
 ~~~
-name age
-alice 21
-ryan 30
+
+
+
+#### [819. 最常见的单词](https://leetcode-cn.com/problems/most-common-word/)
+
+难度简单101收藏分享切换为英文接收动态反馈
+
+给定一个段落 (paragraph) 和一个禁用单词列表 (banned)。返回出现次数最多，同时不在禁用列表中的单词。
+
+题目保证至少有一个词不在禁用列表中，而且答案唯一。
+
+禁用列表中的单词用小写字母表示，不含标点符号。段落中的单词不区分大小写。答案都是小写字母。
+
+ 
+
+**示例：**
+
+```
+输入: 
+paragraph = "Bob hit a ball, the hit BALL flew far after it was hit."
+banned = ["hit"]
+输出: "ball"
+解释: 
+"hit" 出现了3次，但它是一个禁用的单词。
+"ball" 出现了2次 (同时没有其他单词出现2次)，所以它是段落里出现次数最多的，且不在禁用列表中的单词。 
+注意，所有这些单词在段落里不区分大小写，标点符号需要忽略（即使是紧挨着单词也忽略， 比如 "ball,"）， 
+"hit"不是最终的答案，虽然它出现次数更多，但它在禁用单词列表中。
+```
+
+ 
+
+**提示：**
+
+- `1 <= 段落长度 <= 1000`
+- `0 <= 禁用单词个数 <= 100`
+- `1 <= 禁用单词长度 <= 10`
+- 答案是唯一的, 且都是小写字母 (即使在 `paragraph` 里是大写的，即使是一些特定的名词，答案都是小写的。)
+- `paragraph` 只包含字母、空格和下列标点符号`!?',;.`
+- 不存在没有连字符或者带有连字符的单词。
+- 单词里只包含字母，不会出现省略号或者其他标点符号。
+
+通过次数20,578
+
+提交次数48,963
+
+**直接解法**
+
+统计词频，并进行单词过滤。
+
+~~~java
+  public List<String> split(String paragraph){
+        int slow=0, fast=0;
+        List<String> wordLists=new ArrayList();
+        while(fast<paragraph.length()){
+            //seek the first char pos
+            while(fast<paragraph.length()&&!Character.isAlphabetic(paragraph.charAt(fast))){
+                fast++;
+            }
+            if(fast==paragraph.length()){
+                break;
+            }
+            slow=fast;
+            while(fast<paragraph.length()&&Character.isAlphabetic(paragraph.charAt(fast))){
+                fast++;
+            }
+            wordLists.add(paragraph.substring(slow,fast));
+        }
+        return wordLists;
+    }
+    public String mostCommonWord(String paragraph, String[] banned) {
+        List<String> splitWords=split(paragraph);
+        //统计词频
+        Map<String,AtomicInteger> mp=new HashMap();
+        Set<String> bandWordSet=new HashSet(Arrays.asList(banned));
+        String ans=null;
+        int maxFreq=0;
+        for(String word:splitWords){
+            String lowerCase=word.toLowerCase();
+            if(bandWordSet.contains(lowerCase)){
+                continue;
+            }
+            int freq=mp.computeIfAbsent(lowerCase,k->new AtomicInteger()).incrementAndGet();
+            if(freq>maxFreq){
+                ans=lowerCase;
+                maxFreq=freq;
+            }
+        }
+        return ans;
+    }
 ~~~
 
-awk  '{print $2}' file.txt输出内容就是第二列内容，xargs会把对应的换行变成一行。所以有
 
-~~~shell
-# Read from the file file.txt and print its transposed content to stdout.
-# 获取第一行，然后用wc来获取列数
-COLS=`head -1 file.txt | wc -w`
-# 使用awk依次去输出文件的每一列的参数，然后用xargs做转置
-for (( i = 1; i <= $COLS; i++ )); do
-    # 这里col就是在代码里要替换的参数，而它等于$i
-    awk -v col=$i '{print $col}' file.txt | xargs
-done
+
+**官方版本**
+
+~~~java
+ublic String mostCommonWord(String paragraph, String[] banned) {
+        Set<String> set = new HashSet<>(Arrays.asList(banned));
+        Map<String, Integer> map = new HashMap<>();
+        while(start < paragraph.length()) {
+            String word = getNextWord(paragraph);
+            //System.out.println(word);
+            if(set.contains(word)) {
+                continue;
+            }
+            map.put(word, map.getOrDefault(word, 0) + 1);
+        }
+        int max = 0;
+        String res = null;
+        for(String word : map.keySet()) {
+            int count = map.get(word);
+            if(count > max) {
+                max = count;
+                res = word;
+            }
+        }
+        
+        return res;
+    }
+
+    public String getNextWord(String str) {
+        StringBuilder sb = new StringBuilder();
+        for(; start < str.length(); start++) {
+            if(Character.isAlphabetic(str.charAt(start))) {
+                sb.append(Character.toLowerCase(str.charAt(start)));
+            } else {
+                while(start < str.length() && !Character.isAlphabetic(str.charAt(start))) {
+                    start++;
+                }
+                break;
+            }
+        }
+        return sb.toString();
+    }
 ~~~
 
-# 
+
+
+#### [137. 只出现一次的数字 II](https://leetcode-cn.com/problems/single-number-ii/)
+
+难度中等699收藏分享切换为英文接收动态反馈
+
+给你一个整数数组 `nums` ，除某个元素仅出现 **一次** 外，其余每个元素都恰出现 **三次 。**请你找出并返回那个只出现了一次的元素。
+
+ 
+
+**示例 1：**
+
+```
+输入：nums = [2,2,3,2]
+输出：3
+```
+
+**示例 2：**
+
+```
+输入：nums = [0,1,0,1,0,1,99]
+输出：99
+```
+
+ 
+
+**提示：**
+
+- `1 <= nums.length <= 3 * 104`
+- `-231 <= nums[i] <= 231 - 1`
+- `nums` 中，除某个元素仅出现 **一次** 外，其余每个元素都恰出现 **三次**
+
+ 
+
+**进阶：**你的算法应该具有线性时间复杂度。 你可以不使用额外空间来实现吗？
+
+通过次数96,019
+
+提交次数133,467
+
+**传统笨方法**
+
+~~~java
+ public int singleNumber(int[] nums) {
+        //传统笨方法，使用map统计词频
+        Map<Integer,AtomicInteger> mp=new HashMap();
+        for(int num:nums){
+            mp.computeIfAbsent(num,k->new AtomicInteger()).incrementAndGet();
+        }
+        for(Map.Entry<Integer,AtomicInteger> entry:mp.entrySet()){
+            if(entry.getValue().get()==1){
+                return entry.getKey();
+            }
+        }
+        return -1;
+    }
+~~~
+
+
+
+**位移动运算**
+
+~~~java
+public int singleNumber(int[] nums) {
+       //位运算，搜集所有整数的二进制位表示，然后统计每个位的和，之后对3进行取余
+       int[] bit=new int[32];
+       for(int i=0;i<32;i++){
+           bit[i]=0;
+           for(int j=0;j<nums.length;j++){
+               bit[i]+=(nums[j]>>i)&1;
+           }
+       }
+       int ans=0;
+       for(int i=0;i<32;i++){
+           ans+=(bit[i]%3)<<i;
+       }
+       return ans;
+    }
+~~~
+
+**官方版本**
+
+由于数组中的元素都在 $int$（即$32$位整数）范围内，因此我们可以依次计算答案的每一个二进制位是 $0$ 还是 $1$。
+
+具体地，考虑答案的第 $i$ 个二进制位（$i$ 从 $0$ 开始编号），它可能为 $0$ 或 $1$。对于数组中非答案的元素，每一个元素都出现了 $3$ 次，对应着第 $i$ 个二进制位的 $3$ 个 $0$ 或 $3$ 个 $1$，无论是哪一种情况，它们的和都是 $3$ 的倍数（即和为 $0$ 或 $3$）。因此：
+
+答案的第 $i$ 个二进制位就是数组中所有元素的第 $i$ 个二进制位之和除以 $3$ 的余数。
+
+这样一来，对于数组中的每一个元素 $x$，我们使用位运算 $(x >> i) \& 1$ 得到 $x$ 的第 $i$ 个二进制位，并将它们相加再对 $3$ 取余，得到的结果一定为 $0$ 或 $1$，即为答案的第 $i$ 个二进制位。
+
+
+
+~~~java
+public int singleNumber(int[] nums) {
+        int ans = 0;
+        for (int i = 0; i < 32; ++i) {
+            int total = 0;
+            for (int num: nums) {
+                total += ((num >> i) & 1);
+            }
+            if (total % 3 != 0) {
+                ans |= (1 << i);
+            }
+        }
+        return ans;
+    }
+~~~
+
+
+
+#### [152. 乘积最大子数组](https://leetcode-cn.com/problems/maximum-product-subarray/)
+
+难度中等1234收藏分享切换为英文接收动态反馈
+
+给你一个整数数组 `nums` ，请你找出数组中乘积最大的连续子数组（该子数组中至少包含一个数字），并返回该子数组所对应的乘积。
+
+ 
+
+**示例 1:**
+
+```
+输入: [2,3,-2,4]
+输出: 6
+解释: 子数组 [2,3] 有最大乘积 6。
+```
+
+**示例 2:**
+
+```
+输入: [-2,0,-1]
+输出: 0
+解释: 结果不能为 2, 因为 [-2,-1] 不是子数组。
+```
+
+通过次数168,020
+
+提交次数400,358
+
+**传统dp算法**
+
+dp定义两个函数，表示以索引$i$结尾的最大或者最小的子序列成积。
+
+~~~java
+ public int maxProduct(int[] nums) {
+        int preMin=nums[0],preMax=nums[0];
+        int ans=nums[0];
+        for(int i=1;i<nums.length;i++){
+            int tmp=Math.min(nums[i],Math.min(preMin*nums[i],preMax*nums[i]));
+            preMax=Math.max(nums[i],Math.max(preMin*nums[i],preMax*nums[i]));
+            preMin=tmp;
+            ans=Math.max(preMax,ans);
+        }
+        return ans;
+    }
+~~~
+
+
+
+
+
+
+
+#### [85. 最大矩形](https://leetcode-cn.com/problems/maximal-rectangle/)
+
+难度困难990收藏分享切换为英文接收动态反馈
+
+给定一个仅包含 `0` 和 `1` 、大小为 `rows x cols` 的二维二进制矩阵，找出只包含 `1` 的最大矩形，并返回其面积。
+
+ 
+
+**示例 1：**
+
+![img](https://assets.leetcode.com/uploads/2020/09/14/maximal.jpg)
+
+```
+输入：matrix = [["1","0","1","0","0"],["1","0","1","1","1"],["1","1","1","1","1"],["1","0","0","1","0"]]
+输出：6
+解释：最大矩形如上图所示。
+```
+
+**示例 2：**
+
+```
+输入：matrix = []
+输出：0
+```
+
+**示例 3：**
+
+```
+输入：matrix = [["0"]]
+输出：0
+```
+
+**示例 4：**
+
+```
+输入：matrix = [["1"]]
+输出：1
+```
+
+**示例 5：**
+
+```
+输入：matrix = [["0","0"]]
+输出：0
+```
+
+ 
+
+**提示：**
+
+- `rows == matrix.length`
+- `cols == matrix[0].length`
+- `0 <= row, cols <= 200`
+- `matrix[i][j]` 为 `'0'` 或 `'1'`
+
+通过次数91,005
+
+提交次数176,201
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#### [189. 旋转数组](https://leetcode-cn.com/problems/rotate-array/)
+
+难度中等1068收藏分享切换为英文接收动态反馈
+
+给定一个数组，将数组中的元素向右移动 `k` 个位置，其中 `k` 是非负数。
+
+ 
+
+**进阶：**
+
+- 尽可能想出更多的解决方案，至少有三种不同的方法可以解决这个问题。
+- 你可以使用空间复杂度为 O(1) 的 **原地** 算法解决这个问题吗？
+
+ 
+
+**示例 1:**
+
+```
+输入: nums = [1,2,3,4,5,6,7], k = 3
+输出: [5,6,7,1,2,3,4]
+解释:
+向右旋转 1 步: [7,1,2,3,4,5,6]
+向右旋转 2 步: [6,7,1,2,3,4,5]
+向右旋转 3 步: [5,6,7,1,2,3,4]
+```
+
+**示例 2:**
+
+```
+输入：nums = [-1,-100,3,99], k = 2
+输出：[3,99,-1,-100]
+解释: 
+向右旋转 1 步: [99,-1,-100,3]
+向右旋转 2 步: [3,99,-1,-100]
+```
+
+ 
+
+**提示：**
+
+- `1 <= nums.length <= 2 * 104`
+- `-231 <= nums[i] <= 231 - 1`
+- `0 <= k <= 105`
+
+
+
+通过次数311,644
+
+提交次数687,812
+
+**直接做法，时间复杂读是$O(kn)$**
+
+向右移动k位相当于，不断的将数组末尾的数添加到数组头部，整体数据向右移动，该方法时间复杂度是$O(kn)$，超时。
+
+~~~java
+ public void rotate(int[] nums, int k) {
+        //时间复杂度是O(kn)，向右移动相当于除了最后一位不断添加到首位
+        k=k%nums.length;
+        for(int i=0;i<k;i++){
+            int last=nums[nums.length-1];
+            //向后移动
+            for(int j=nums.length-2;j>=0;j--){
+                nums[j+1]=nums[j];
+            }
+            nums[0]=last;
+        }
+    }
+~~~
+
+
+
+**使用额外的空间**
+
+使用额外$O(k)$的空间来存放数组倒数k个元素
+
+~~~java
+ public void rotate(int[] nums, int k) {
+       //使用额外的空间，用来存放数组最后k个数
+       k=k%nums.length;
+       int[] extraNum=new int[k];
+       for(int j=nums.length-1;j>=nums.length-k;j--){
+           extraNum[j+k-nums.length]=nums[j];
+       }
+       //将索引0到nums.length-1-k个数移动到最终的位置
+       int i=nums.length-1-k,j=nums.length-1;
+       while(i>=0){
+           nums[j--]=nums[i--];
+       }
+       for(i=0;i<k;i++){
+           nums[i]=extraNum[i];
+       }
+    }
+~~~
+
+
+
+**官方解答数组反转**
+该方法基于如下的事实：当我们将数组的元素向右移动 $k$ 次后，尾部 $kmodn$ 个元素会移动至数组头部，其余元素向后移动 $kmodn$个位置。
+
+该方法为数组的翻转：我们可以先将所有元素翻转，这样尾部的$kmodn$ 个元素就被移至数组头部，然后我们再翻转 $[0, k\bmod n-1]$ 区间的元素和 $[k\bmod n, n-1]$ 区间的元素即能得到最后的答案。
+
+我们以 $n=7，k=3$为例进行如下展示：
+
+操作			结果
+原始数组	$1 2 3 4 5 6 7$
+翻转所有元素	$7 6 5 4 3 2 1$
+翻转 $[0, k\bmod n - 1]$ 区间的元素  $ 5 6 7 4 3 2 1$
+翻转 $[k\bmod n, n - 1]$ 区间的元素	$5 6 7 1 2 3 4$
+
+~~~java
+public void rotate(int[] nums, int k) {
+        k %= nums.length;
+        reverse(nums, 0, nums.length - 1);
+        reverse(nums, 0, k - 1);
+        reverse(nums, k, nums.length - 1);
+    }
+
+    public void reverse(int[] nums, int start, int end) {
+        while (start < end) {
+            int temp = nums[start];
+            nums[start] = nums[end];
+            nums[end] = temp;
+            start += 1;
+            end -= 1;
+        }
+    }
+~~~
+
+
+
+#### [155. 最小栈](https://leetcode-cn.com/problems/min-stack/)
+
+难度简单988收藏分享切换为英文接收动态反馈
+
+设计一个支持 `push` ，`pop` ，`top` 操作，并能在常数时间内检索到最小元素的栈。
+
+- `push(x)` —— 将元素 x 推入栈中。
+- `pop()` —— 删除栈顶的元素。
+- `top()` —— 获取栈顶元素。
+- `getMin()` —— 检索栈中的最小元素。
+
+ 
+
+**示例:**
+
+```
+输入：
+["MinStack","push","push","push","getMin","pop","top","getMin"]
+[[],[-2],[0],[-3],[],[],[],[]]
+
+输出：
+[null,null,null,null,-3,null,0,-2]
+
+解释：
+MinStack minStack = new MinStack();
+minStack.push(-2);
+minStack.push(0);
+minStack.push(-3);
+minStack.getMin();   --> 返回 -3.
+minStack.pop();
+minStack.top();      --> 返回 0.
+minStack.getMin();   --> 返回 -2.
+```
+
+ 
+
+**提示：**
+
+- `pop`、`top` 和 `getMin` 操作总是在 **非空栈** 上调用。
+
+通过次数270,997
+
+提交次数474,004
+
+**直接做法**
+
+传统的push、pop以及top方法直接可以通过栈来实现，getMin无法通过一个栈来实现，考虑增加一个栈结构，增加一个单调栈，栈里面存放的数字是单调递减（可以存在重复的数字），入栈出栈的时候维护这个单调栈结构即可。
+
+~~~java
+class MinStack {
+    /**
+        涉及两个栈，一个是单调递减栈（可以保存相同的元素）s1，另一个是传统的栈s2。
+        s1是用获取最小的元素，s2是传统的栈，用来支持pop、push、top操作。
+     */
+    Stack<Integer> minSt=new Stack();
+    Stack<Integer> st=new Stack();
+    /** initialize your data structure here. */
+    public MinStack() {
+
+    }
+    
+    public void push(int val) {
+        st.push(val);
+        //单调栈的栈顶元素大于等于当前的元素时候，入栈
+        if(minSt.isEmpty()||minSt.peek()>=val){
+            minSt.push(val);
+        }
+    }
+    
+    public void pop() {
+        int val=st.pop();
+        //查看该值是否是最小值，如果是最小值，出栈
+        if(val==minSt.peek()){
+            minSt.pop();
+        }
+    }
+    
+    public int top() {
+        return st.peek();
+    }
+    
+    public int getMin() {
+        return minSt.peek();
+    }
+}
+~~~
+
+
+
+**官方版本**
+
+~~~java
+class MinStack {
+
+    /** initialize your data structure here. */
+    Deque<Integer> xStack;
+    Deque<Integer> minStack;
+
+    public MinStack(){
+        xStack = new LinkedList<Integer>();
+        minStack = new LinkedList<Integer>();
+        minStack.push(Integer.MAX_VALUE);
+    }
+    public void push(int val){
+        xStack.push(val);
+        minStack.push(Math.min(minStack.peek(),val));
+    }
+    public void pop(){
+        xStack.pop();
+        minStack.pop();
+    }
+    public int top(){
+        return xStack.peek();
+    }
+    public int getMin(){
+        return minStack.peek();
+    }
+}
+~~~
+
+#### [268. 丢失的数字](https://leetcode-cn.com/problems/missing-number/)
+
+难度简单436
+
+给定一个包含 `[0, n]` 中 `n` 个数的数组 `nums` ，找出 `[0, n]` 这个范围内没有出现在数组中的那个数。
+
+ 
+
+**进阶：**
+
+- 你能否实现线性时间复杂度、仅使用额外常数空间的算法解决此问题?
+
+ 
+
+**示例 1：**
+
+```
+输入：nums = [3,0,1]
+输出：2
+解释：n = 3，因为有 3 个数字，所以所有的数字都在范围 [0,3] 内。2 是丢失的数字，因为它没有出现在 nums 中。
+```
+
+**示例 2：**
+
+```
+输入：nums = [0,1]
+输出：2
+解释：n = 2，因为有 2 个数字，所以所有的数字都在范围 [0,2] 内。2 是丢失的数字，因为它没有出现在 nums 中。
+```
+
+**示例 3：**
+
+```
+输入：nums = [9,6,4,2,3,5,7,0,1]
+输出：8
+解释：n = 9，因为有 9 个数字，所以所有的数字都在范围 [0,9] 内。8 是丢失的数字，因为它没有出现在 nums 中。
+```
+
+**示例 4：**
+
+```
+输入：nums = [0]
+输出：1
+解释：n = 1，因为有 1 个数字，所以所有的数字都在范围 [0,1] 内。1 是丢失的数字，因为它没有出现在 nums 中。
+```
+
+ 
+
+**提示：**
+
+- `n == nums.length`
+- `1 <= n <= 104`
+- `0 <= nums[i] <= n`
+- `nums` 中的所有数字都 **独一无二**
+
+通过次数143,637
+
+提交次数230,966
+
+**方法一数组交换**
+
+交换数组元素到指定的位置，对于数组中的元素$k$将其替换到索引$k$处。
+
+~~~java
+ public int missingNumber(int[] nums) {
+        int n=nums.length;
+        //交换数组内容，将位置i的值设置成i
+        for(int i=0;i<n;i++){
+            while(nums[i]>=0&&nums[i]<n&&nums[i]!=i){
+                int tmp=nums[i];
+                nums[i]=nums[tmp];
+                nums[tmp]=tmp;
+            }
+        }
+        for(int i=0;i<n;i++){
+            if(nums[i]!=i){
+                return i;
+            }
+        }
+        return n;
+    }
+~~~
+
+
+
+**方法二求和**
+
+题目描述只缺少一个数，数字范围是$0...n+1$之间（$n$是数组长度），那么数字$0...n+1$的和减去当前数组的元素和就是缺失的那个数。
+
+~~~java
+ public int missingNumber(int[] nums) {
+        int sum = 0;
+        for (int i=0; i < nums.length; i++){
+            sum += nums[i];
+        }
+        int maxsum = (nums.length)*(nums.length+1)/2;
+        return maxsum-sum;
+    }
+~~~
+
+
+
+**方法三位运算**
+
+~~~java
+ public int missingNumber(int[] nums) {
+        int missing = nums.length;
+        for (int i = 0; i < nums.length; i++) {
+            missing ^= i ^ nums[i];
+        }
+        return missing;
+    }
+~~~
+
+
+
+#### [287. 寻找重复数](https://leetcode-cn.com/problems/find-the-duplicate-number/)
+
+难度中等1353
+
+给定一个包含 `n + 1` 个整数的数组 `nums` ，其数字都在 `1` 到 `n` 之间（包括 `1` 和 `n`），可知至少存在一个重复的整数。
+
+假设 `nums` 只有 **一个重复的整数** ，找出 **这个重复的数** 。
+
+你设计的解决方案必须不修改数组 `nums` 且只用常量级 `O(1)` 的额外空间。
+
+ 
+
+**示例 1：**
+
+```
+输入：nums = [1,3,4,2,2]
+输出：2
+```
+
+**示例 2：**
+
+```
+输入：nums = [3,1,3,4,2]
+输出：3
+```
+
+**示例 3：**
+
+```
+输入：nums = [1,1]
+输出：1
+```
+
+**示例 4：**
+
+```
+输入：nums = [1,1,2]
+输出：1
+```
+
+ 
+
+**提示：**
+
+- `1 <= n <= 105`
+- `nums.length == n + 1`
+- `1 <= nums[i] <= n`
+- `nums` 中 **只有一个整数** 出现 **两次或多次** ，其余整数均只出现 **一次**
+
+ 
+
+**进阶：**
+
+- 如何证明 `nums` 中至少存在一个重复的数字?
+- 你可以设计一个线性级时间复杂度 `O(n)` 的解决方案吗？
+
+通过次数169,269
+
+提交次数255,175
+
+**方法一交换数组**
+
+思路和前面一提相似。
+
+~~~java
+ public int findDuplicate(int[] nums) {
+        for(int i=0;i<nums.length;i++){
+            int tmp=nums[i];
+            while(tmp!=i+1){
+                if(nums[tmp-1]==tmp){
+                    return tmp;
+                }
+                nums[i]=nums[tmp-1];
+                nums[tmp-1]=tmp;
+                tmp=nums[i];
+            }
+        }
+        return -1;
+    }
+~~~
+
+#### [318. 最大单词长度乘积](https://leetcode-cn.com/problems/maximum-product-of-word-lengths/)
+
+难度中等182
+
+给定一个字符串数组 `words`，找到 `length(word[i]) * length(word[j])` 的最大值，并且这两个单词不含有公共字母。你可以认为每个单词只包含小写字母。如果不存在这样的两个单词，返回 0。
+
+ 
+
+**示例 1:**
+
+```
+输入: ["abcw","baz","foo","bar","xtfn","abcdef"]
+输出: 16 
+解释: 这两个单词为 "abcw", "xtfn"。
+```
+
+**示例 2:**
+
+```
+输入: ["a","ab","abc","d","cd","bcd","abcd"]
+输出: 4 
+解释: 这两个单词为 "ab", "cd"。
+```
+
+**示例 3:**
+
+```
+输入: ["a","aa","aaa","aaaa"]
+输出: 0 
+解释: 不存在这样的两个单词。
+```
+
+ 
+
+**提示：**
+
+- `2 <= words.length <= 1000`
+- `1 <= words[i].length <= 1000`
+- `words[i]` 仅包含小写字母
+
+通过次数18,569
+
+提交次数27,254
+
+**常规解法**
+
+主要是改进比较两个单词是否包含公共单词方法。
+
+~~~java
+ /**
+    ** 检测两个单词是否包含相同的字母
+     */
+    boolean containsCommonLetter(String word1,String word2){
+        int[] freq=new int[26];
+        for(int i=0;i<word1.length();i++){
+            freq[word1.charAt(i)-'a']+=1;
+        }
+        for(int i=0;i<word2.length();i++){
+            if(freq[word2.charAt(i)-'a']>0){
+                return true;
+            }
+        }
+        return false;
+    }
+    public int maxProduct(String[] words) {
+        int ans=0;
+        for(int i=0;i<words.length;i++){
+            for(int j=i+1;j<words.length;j++){
+                //减枝
+                if(words[i].length()<=ans/words[j].length()){
+                    continue;
+                }
+                if(containsCommonLetter(words[i],words[j])){
+                    continue;
+                }
+                ans=Math.max(ans,words[i].length()*words[j].length());
+            }
+        }
+        return ans;
+    }
+~~~
+
+
+
+**位操作+预计算+hashmap**
+
+~~~java
+  public int bitNumber(char ch){
+    return (int)ch - (int)'a';
+  }
+
+  public int maxProduct(String[] words) {
+    Map<Integer, Integer> hashmap = new HashMap();
+
+    int bitmask = 0, bitNum = 0;
+    for (String word : words) {
+      bitmask = 0;
+      for (char ch : word.toCharArray()) {
+        // add bit number bitNumber in bitmask
+        bitmask |= 1 << bitNumber(ch);
+      }
+      // there could be different words with the same bitmask
+      // ex. ab and aabb
+      hashmap.put(bitmask, Math.max(hashmap.getOrDefault(bitmask, 0), word.length()));
+    }
+
+    int maxProd = 0;
+    for (int x : hashmap.keySet())
+      for (int y : hashmap.keySet())
+        if ((x & y) == 0) maxProd = Math.max(maxProd, hashmap.get(x) * hashmap.get(y));
+
+    return maxProd;
+  }
+~~~
+
+
+
+#### [47. 全排列 II](https://leetcode-cn.com/problems/permutations-ii/)
+
+难度中等775
+
+给定一个可包含重复数字的序列 `nums` ，**按任意顺序** 返回所有不重复的全排列。
+
+ 
+
+**示例 1：**
+
+```
+输入：nums = [1,1,2]
+输出：
+[[1,1,2],
+ [1,2,1],
+ [2,1,1]]
+```
+
+**示例 2：**
+
+```
+输入：nums = [1,2,3]
+输出：[[1,2,3],[1,3,2],[2,1,3],[2,3,1],[3,1,2],[3,2,1]]
+```
+
+ 
+
+**提示：**
+
+- `1 <= nums.length <= 8`
+- `-10 <= nums[i] <= 10`
+
+通过次数198,803
+
+提交次数312,765
+
+**我的解法**
+
+和全排列I的思路类似，采用回溯方法，每次迭代过程中增加一个数字，增加数字完成之后为了避免再次碰到该数字，进行数字交换。因为输入包含重复数字，需要进行去重标记，由于数字范围是$[-10,10]$，直接使用一个byte数组进行标记。
+
+~~~java
+public List<List<Integer>> ans=new ArrayList();
+    public void permute(List<Integer> numList,int start,List<Integer> result){
+        if(start==numList.size()){
+            ans.add(new ArrayList(result));
+            return;
+        }
+        //用来标记当前函数执行过程中已经选择过的第start个数字
+        byte[] bit=new byte[21];
+        for(int i=start;i<numList.size();i++){
+            if(bit[numList.get(i)+10]==1){
+                continue;
+            }
+            //标记当前数字已经选择，数字区间范围是[-10,10]
+            bit[numList.get(i)+10]=1;
+            result.add(numList.get(i));
+            Collections.swap(numList,i,start);
+            permute(numList,start+1,result);
+            Collections.swap(numList,i,start);
+            result.remove(result.size()-1);
+        }
+    }
+    public List<List<Integer>> permuteUnique(int[] nums) {
+        Arrays.sort(nums);
+        List<Integer> numList=Arrays.stream(nums).boxed().collect(Collectors.toList());
+        permute(numList,0,new ArrayList());
+        return ans;
+    }
+~~~
+
+
+
+**官方答案：标记回溯**
+
+~~~java
+  boolean[] vis;
+
+    public List<List<Integer>> permuteUnique(int[] nums) {
+        List<List<Integer>> ans = new ArrayList<List<Integer>>();
+        List<Integer> perm = new ArrayList<Integer>();
+        vis = new boolean[nums.length];
+        Arrays.sort(nums);
+        backtrack(nums, ans, 0, perm);
+        return ans;
+    }
+
+    public void backtrack(int[] nums, List<List<Integer>> ans, int idx, List<Integer> perm) {
+        if (idx == nums.length) {
+            ans.add(new ArrayList<Integer>(perm));
+            return;
+        }
+        for (int i = 0; i < nums.length; ++i) {
+            if (vis[i] || (i > 0 && nums[i] == nums[i - 1] && !vis[i - 1])) {
+                continue;
+            }
+            perm.add(nums[i]);
+            vis[i] = true;
+            backtrack(nums, ans, idx + 1, perm);
+            vis[i] = false;
+            perm.remove(idx);
+        }
+    }
+~~~
+
+
+
+#### [28. 实现 strStr()](https://leetcode-cn.com/problems/implement-strstr/)
+
+难度简单997
+
+实现 [strStr()](https://baike.baidu.com/item/strstr/811469) 函数。
+
+给你两个字符串 `haystack` 和 `needle` ，请你在 `haystack` 字符串中找出 `needle` 字符串出现的第一个位置（下标从 0 开始）。如果不存在，则返回 `-1` 。
+
+ 
+
+**说明：**
+
+当 `needle` 是空字符串时，我们应当返回什么值呢？这是一个在面试中很好的问题。
+
+对于本题而言，当 `needle` 是空字符串时我们应当返回 0 。这与 C 语言的 [strstr()](https://baike.baidu.com/item/strstr/811469) 以及 Java 的 [indexOf()](https://docs.oracle.com/javase/7/docs/api/java/lang/String.html#indexOf(java.lang.String)) 定义相符。
+
+ 
+
+**示例 1：**
+
+```
+输入：haystack = "hello", needle = "ll"
+输出：2
+```
+
+**示例 2：**
+
+```
+输入：haystack = "aaaaa", needle = "bba"
+输出：-1
+```
+
+**示例 3：**
+
+```
+输入：haystack = "", needle = ""
+输出：0
+```
+
+ 
+
+**提示：**
+
+- `0 <= haystack.length, needle.length <= 5 * 104`
+- `haystack` 和 `needle` 仅由小写英文字符组成
+
+通过次数443,466
+
+提交次数1,088,995
+
+**我的解法**
+
+利用前缀和思想来进行求解，为了减少字符串全部比较操作，采用计算hash值的方式。
+
+~~~java
+	/**
+        计算字符串hashcode值
+     */
+    public int[] hashcodeInteger(String str){
+        int[] code=new int[str.length()+1];
+        code[0]=0;
+        int i=1;
+        for(char ch:str.toCharArray()){
+            code[i]=code[i-1]+ch*31;
+            i++;
+        }
+        return code;
+    }
+    public int strStr(String haystack, String needle) {
+        if(needle.length()==0){
+            return 0;
+        }
+        int[] hayCode=hashcodeInteger(haystack);
+        int needleCode=hashcodeInteger(needle)[needle.length()];
+        for(int i=0;i<haystack.length()-needle.length()+1;i++){
+             int subCode=hayCode[i+needle.length()]-hayCode[i];
+             if(subCode!=needleCode){
+                 continue;
+             }
+             if(haystack.substring(i,i+needle.length()).equals(needle)){
+                 return i;
+             }
+        }
+        return -1;
+    }
+~~~
+
+
+
+**官方解答kmp算法**
+
+~~~java
+ public int strStr(String haystack, String needle) {
+        int n = haystack.length(), m = needle.length();
+        if (m == 0) {
+            return 0;
+        }
+        int[] pi = new int[m];
+        for (int i = 1, j = 0; i < m; i++) {
+            while (j > 0 && needle.charAt(i) != needle.charAt(j)) {
+                j = pi[j - 1];
+            }
+            if (needle.charAt(i) == needle.charAt(j)) {
+                j++;
+            }
+            pi[i] = j;
+        }
+        for (int i = 0, j = 0; i < n; i++) {
+            while (j > 0 && haystack.charAt(i) != needle.charAt(j)) {
+                j = pi[j - 1];
+            }
+            if (haystack.charAt(i) == needle.charAt(j)) {
+                j++;
+            }
+            if (j == m) {
+                return i - m + 1;
+            }
+        }
+        return -1;
+    }
+~~~
+
+
+
+#### [954. 二倍数对数组](https://leetcode-cn.com/problems/array-of-doubled-pairs/)
+
+难度中等51
+
+给定一个长度为偶数的整数数组 `arr`，只有对 `arr` 进行重组后可以满足 “对于每个 `0 <= i < len(arr) / 2`，都有 `arr[2 * i + 1] = 2 * arr[2 * i]`” 时，返回 `true`；否则，返回 `false`。
+
+ 
+
+**示例 1：**
+
+```
+输入：arr = [3,1,3,6]
+输出：false
+```
+
+**示例 2：**
+
+```
+输入：arr = [2,1,2,6]
+输出：false
+```
+
+**示例 3：**
+
+```
+输入：arr = [4,-2,2,-4]
+输出：true
+解释：可以用 [-2,-4] 和 [2,4] 这两组组成 [-2,-4,2,4] 或是 [2,4,-2,-4]
+```
+
+**示例 4：**
+
+```
+输入：arr = [1,2,4,16,8,4]
+输出：false
+```
+
+ 
+
+**提示：**
+
+- `0 <= arr.length <= 3 * 104`
+- `arr.length` 是偶数
+- `-105 <= arr[i] <= 105`
+
+通过次数6,794
+
+提交次数22,753
+
+
+
+**官方答案**
+
+基本思路是相同的，就是按照数据的绝对值进行排序，从第一个数字进行遍历，如果当前数字$x$没有被遍历过，那么对应的$2x$必须要存在，不然它就不是对数组，遍历完之后要进行标记。
+
+~~~java
+public boolean canReorderDoubled(int[] A) {
+        // count[x] = the number of occurrences of x in A
+        Map<Integer, Integer> count = new HashMap();
+        for (int x: A)
+            count.put(x, count.getOrDefault(x, 0) + 1);
+
+        // B = A as Integer[], sorted by absolute value
+        Integer[] B = new Integer[A.length];
+        for (int i = 0; i < A.length; ++i)
+            B[i] = A[i];
+       Arrays.sort(B, Comparator.comparingInt(Math::abs));
+
+        for (int x: B) {
+            // If this can't be consumed, skip
+            if (count.get(x) == 0) continue;
+            // If this doesn't have a doubled partner, the answer is false
+            if (count.getOrDefault(2*x, 0) <= 0) return false;
+
+            // Write x, 2*x
+            count.put(x, count.get(x) - 1);
+            count.put(2*x, count.get(2*x) - 1);
+        }
+
+        // If we have written everything, the answer is true
+        return true;
+    }
+~~~
+
+
+
+**我的答案双指针**
+
+通过双指针方式进行遍历而不是采用map形式。
+
+~~~java
+public boolean canReorderDoubled(int[] arr) {
+        List<Integer> arrList=Arrays.stream(arr).boxed().collect(Collectors.toList());
+        //按照绝对值排序
+        Collections.sort(arrList,(n1,n2)->{
+            if(Math.abs(n1)!=Math.abs(n2)){
+                return Math.abs(n1)-Math.abs(n2);
+            }
+            return n1-n2;
+        });
+        //采用双指针进行匹配
+        //标记是否做了匹配
+        int left=0;
+        boolean[] matched=new boolean[arrList.size()];
+        for(int i=left+1;i<arrList.size();i++){
+            while(matched[left]&&left<arrList.size()){
+                left++;
+            }
+            if(i!=left&&arrList.get(i)==2*arrList.get(left)){
+                matched[left]=true;
+                matched[i]=true;
+                continue;
+            }
+        }
+        for(boolean result:matched){
+            if(!result){
+                return false;
+            }
+        }
+        return true;
+    }
+~~~
+
+
+
+**方法三桶排序思想**
+
+~~~java
+public boolean canReorderDoubled(int[] A) {
+       //桶排序，将数组分成两种类型，负数和非负数
+       int extra=100000;
+       int bucketSize=2*extra+1;
+       int[] bucket=new int[bucketSize];
+       for(int num:A){
+           bucket[num+extra]++;
+       } 
+       //首先是0,0的个数必须是偶数
+       if((bucket[extra]&2)==1){
+           return false;
+       }
+       //对应的负数，从大到小
+       for(int i=extra-1;i>=0;i--){
+           if(bucket[i]==0){
+               continue;
+           }
+           //对应的二倍数越界或者值小于，注意不是等于，例如-2,-4,-4,-8这种
+           if(2*i-extra<0||bucket[2*i-extra]<bucket[i]){
+               return false;
+           }
+           //标记
+           bucket[2*i-extra]-=bucket[i];
+           bucket[i]=0;
+       }
+       //对应的整数，从小到大
+       for(int i=extra+1;i<bucketSize;i++){
+           if(bucket[i]==0){
+               continue;
+           }
+           if(2*i-extra>=bucketSize||bucket[2*i-extra]<bucket[i]){
+               return false;
+           }
+           bucket[2*i-extra]-=bucket[i];
+           bucket[i]=0;
+       }
+       return true;
+    }
+~~~
+
+
+
+#### [66. 加一](https://leetcode-cn.com/problems/plus-one/)
+
+难度简单733
+
+给定一个由 **整数** 组成的 **非空** 数组所表示的非负整数，在该数的基础上加一。
+
+最高位数字存放在数组的首位， 数组中每个元素只存储**单个**数字。
+
+你可以假设除了整数 0 之外，这个整数不会以零开头。
+
+ 
+
+**示例 1：**
+
+```
+输入：digits = [1,2,3]
+输出：[1,2,4]
+解释：输入数组表示数字 123。
+```
+
+**示例 2：**
+
+```
+输入：digits = [4,3,2,1]
+输出：[4,3,2,2]
+解释：输入数组表示数字 4321。
+```
+
+**示例 3：**
+
+```
+输入：digits = [0]
+输出：[1]
+```
+
+ 
+
+**提示：**
+
+- `1 <= digits.length <= 100`
+- `0 <= digits[i] <= 9`
+
+通过次数332,141
+
+提交次数724,287
+
+**直接解法**
+
+注意溢出位处理以及数据类型转换，int[]数组转换成List\<Integer\>。
+
+~~~java
+ public int[] plusOne(int[] digits) {
+        int carry=1;
+        for(int i=digits.length-1;i>=0;i--){
+            int sum=carry+digits[i];
+            if(sum>=10){
+                carry=1;
+            }else{
+                carry=0;
+            }
+            digits[i]=sum%10;
+        }
+        if(carry==0){
+            return digits;
+        }else{
+            List<Integer> digitList=Arrays.stream(digits).boxed().collect(Collectors.toList());
+            digitList.add(0,1);
+            return digitList.stream().mapToInt(Integer::intValue).toArray();
+        }
+    }
+~~~
+
+
+
+#### [54. 螺旋矩阵](https://leetcode-cn.com/problems/spiral-matrix/)
+
+难度中等852
+
+给你一个 `m` 行 `n` 列的矩阵 `matrix` ，请按照 **顺时针螺旋顺序** ，返回矩阵中的所有元素。
+
+ 
+
+**示例 1：**
+
+![img](https://assets.leetcode.com/uploads/2020/11/13/spiral1.jpg)
+
+```
+输入：matrix = [[1,2,3],[4,5,6],[7,8,9]]
+输出：[1,2,3,6,9,8,7,4,5]
+```
+
+**示例 2：**
+
+![img](https://assets.leetcode.com/uploads/2020/11/13/spiral.jpg)
+
+```
+输入：matrix = [[1,2,3,4],[5,6,7,8],[9,10,11,12]]
+输出：[1,2,3,4,8,12,11,10,9,5,6,7]
+```
+
+ 
+
+**提示：**
+
+- `m == matrix.length`
+- `n == matrix[i].length`
+- `1 <= m, n <= 10`
+- `-100 <= matrix[i][j] <= 100`
+
+通过次数178,421
+
+提交次数373,162
+
+**我的解法**
+
+这种问题关键在于如何确定开始和结束以及循环什么时候终止。看题解
+
+~~~java
+ public List<Integer> spiralOrder(int[][] matrix) {
+        //整个遍历过程是从坐标(i,i)开始，然后开始按照从左到右，
+        //从上到下、从右到左、从下到上的顺序进行的。整个遍历的坐标变换依次如下
+        //从左到右 (i,i)->(i,n-1-i)
+        //从上到下 (i+1,n-1-i)->(m-1-i,n-1-i)
+        //从右到左 (m-1-i,n-2-i)->(m-1-i,i)
+        //从下到上 (m-2-i,i)->(i+1,i)
+        //注意每轮循环判断当前元素是否已经遍历完
+        int m=matrix.length,n=matrix[0].length;
+        int total=m*n;
+        List<Integer> ans=new ArrayList(total);
+        int i=0;
+        while(true){
+            //从左到右
+            for(int j=i;j<=n-1-i;j++){
+                ans.add(matrix[i][j]);
+            }
+            if(ans.size()==total){
+                break;
+            }
+            //从上到下
+            for(int j=i+1;j<=m-1-i;j++){
+                ans.add(matrix[j][n-1-i]);
+            }
+            if(ans.size()==total){
+                break;
+            }
+            //从右到左
+            for(int j=n-2-i;j>=i;j--){
+                ans.add(matrix[m-1-i][j]);
+            }
+            if(ans.size()==total){
+                break;
+            }
+            //从下到上
+            for(int j=m-2-i;j>=i+1;j--){
+                ans.add(matrix[j][i]);
+            }
+            if(ans.size()==total){
+                break;
+            }
+            i++;
+        }
+        return ans;
+    }
+~~~
+
+
+
+**官方解答**
+
+通过数组标记形式。
+
+~~~java
+public List<Integer> spiralOrder(int[][] matrix) {
+        List<Integer> order = new ArrayList<Integer>();
+        if (matrix == null || matrix.length == 0 || matrix[0].length == 0) {
+            return order;
+        }
+        int rows = matrix.length, columns = matrix[0].length;
+        boolean[][] visited = new boolean[rows][columns];
+        int total = rows * columns;
+        int row = 0, column = 0;
+        int[][] directions = {{0, 1}, {1, 0}, {0, -1}, {-1, 0}};
+        int directionIndex = 0;
+        for (int i = 0; i < total; i++) {
+            order.add(matrix[row][column]);
+            visited[row][column] = true;
+            int nextRow = row + directions[directionIndex][0], nextColumn = column + directions[directionIndex][1];
+            if (nextRow < 0 || nextRow >= rows || nextColumn < 0 || nextColumn >= columns || visited[nextRow][nextColumn]) {
+                directionIndex = (directionIndex + 1) % 4;
+            }
+            row += directions[directionIndex][0];
+            column += directions[directionIndex][1];
+        }
+        return order;
+    }
+~~~
+
+
+
+#### [4. 寻找两个正序数组的中位数](https://leetcode-cn.com/problems/median-of-two-sorted-arrays/)
+
+难度困难4401
+
+给定两个大小分别为 `m` 和 `n` 的正序（从小到大）数组 `nums1` 和 `nums2`。请你找出并返回这两个正序数组的 **中位数** 。
+
+ 
+
+**示例 1：**
+
+```
+输入：nums1 = [1,3], nums2 = [2]
+输出：2.00000
+解释：合并数组 = [1,2,3] ，中位数 2
+```
+
+**示例 2：**
+
+```
+输入：nums1 = [1,2], nums2 = [3,4]
+输出：2.50000
+解释：合并数组 = [1,2,3,4] ，中位数 (2 + 3) / 2 = 2.5
+```
+
+**示例 3：**
+
+```
+输入：nums1 = [0,0], nums2 = [0,0]
+输出：0.00000
+```
+
+**示例 4：**
+
+```
+输入：nums1 = [], nums2 = [1]
+输出：1.00000
+```
+
+**示例 5：**
+
+```
+输入：nums1 = [2], nums2 = []
+输出：2.00000
+```
+
+ 
+
+**提示：**
+
+- `nums1.length == m`
+- `nums2.length == n`
+- `0 <= m <= 1000`
+- `0 <= n <= 1000`
+- `1 <= m + n <= 2000`
+- `-106 <= nums1[i], nums2[i] <= 106`
+
+ 
+
+**进阶：**你能设计一个时间复杂度为 `O(log (m+n))` 的算法解决此问题吗？
+
+通过次数482,508
+
+提交次数1,186,049
+
+**折半查找**
+
+该题比较典型，具体表现从2个有序的数组中查找第k小的数字，为了简化逻辑，索引k从1开始。注意折半查找中间数，当k为基数的时候，即使两个中间数相等，也不能直接返回结果。
+
+~~~java
+/**
+     * k从索引1开始
+     */
+    public int findKMin(int[] nums1, int i, int j, int[] nums2, int m, int n, int k) {
+        if (i > j) {
+            return nums2[m + k - 1];
+        }
+        if (m > n) {
+            return nums1[i + k - 1];
+        }
+        if (k == 1) {
+            return Math.min(nums1[i], nums2[m]);
+        }
+        int n1Right = j - i >= k / 2 - 1 ? i + k / 2 - 1 : j;
+        int n2Right = n - m >= k / 2 - 1 ? m + k / 2 - 1 : n;
+        //折半查找
+        if (nums1[n1Right] == nums2[n2Right]) {
+            //k如果是奇数，那么i到n1Right和j到n2Right都要舍弃
+            if (n1Right == j||(k%2==1)) {
+                return findKMin(nums1, n1Right + 1, j, nums2, m, n, k - (n1Right - i + 1));
+            } else if (n2Right == n) {
+                return findKMin(nums1, i, j, nums2, n2Right + 1, n, k - (n2Right - m + 1));
+            }
+            return nums1[n1Right];
+        } else if (nums1[n1Right] < nums2[n2Right]) {
+            //丢弃掉i~n1Right之间的元素
+            return findKMin(nums1, n1Right + 1, j, nums2, m, n, k - (n1Right - i + 1));
+        } else {
+            return findKMin(nums1, i, j, nums2, n2Right + 1, n, k - (n2Right - m + 1));
+        }
+    }
+
+    public double findMedianSortedArrays(int[] nums1, int[] nums2) {
+        int n1 = nums1.length;
+        int n2 = nums2.length;
+        int total = n1 + n2;
+        int ans = 0;
+        ans += findKMin(nums1, 0, n1 - 1, nums2, 0, n2 - 1, total / 2 + 1);
+        if ((total % 2) == 0) {
+            ans += findKMin(nums1, 0, n1 - 1, nums2, 0, n2 - 1, total / 2);
+            return 1.0 * ans / 2;
+        }
+        return ans;
+    }
+~~~
+
+
+
+**网上优秀解答**
+
+~~~java
+public double findMedianSortedArrays(int[] nums1, int[] nums2) {
+        int m = nums1.length;
+        int n = nums2.length;
+        int left = (m + n + 1) / 2;
+        int right = (m + n + 2) / 2;
+        return (findKth(nums1, 0, nums2, 0, left) + findKth(nums1, 0, nums2, 0, right)) / 2.0;
+    }
+    //i: nums1的起始位置 j: nums2的起始位置
+    public int findKth(int[] nums1, int i, int[] nums2, int j, int k){
+        if( i >= nums1.length) return nums2[j + k - 1];//nums1为空数组
+        if( j >= nums2.length) return nums1[i + k - 1];//nums2为空数组
+        if(k == 1){
+            return Math.min(nums1[i], nums2[j]);
+        }
+        int midVal1 = (i + k / 2 - 1 < nums1.length) ? nums1[i + k / 2 - 1] : Integer.MAX_VALUE;
+        int midVal2 = (j + k / 2 - 1 < nums2.length) ? nums2[j + k / 2 - 1] : Integer.MAX_VALUE;
+        if(midVal1 < midVal2){
+            return findKth(nums1, i + k / 2, nums2, j , k - k / 2);
+        }else{
+            return findKth(nums1, i, nums2, j + k / 2 , k - k / 2);
+        }        
+    }
+~~~
+
+
+
+#### [234. 回文链表](https://leetcode-cn.com/problems/palindrome-linked-list/)
+
+难度简单1087
+
+给你一个单链表的头节点 `head` ，请你判断该链表是否为回文链表。如果是，返回 `true` ；否则，返回 `false` 。
+
+ 
+
+**示例 1：**
+
+![img](https://assets.leetcode.com/uploads/2021/03/03/pal1linked-list.jpg)
+
+```
+输入：head = [1,2,2,1]
+输出：true
+```
+
+**示例 2：**
+
+![img](https://assets.leetcode.com/uploads/2021/03/03/pal2linked-list.jpg)
+
+```
+输入：head = [1,2]
+输出：false
+```
+
+ 
+
+**提示：**
+
+- 链表中节点数目在范围`[1, 105]` 内
+- `0 <= Node.val <= 9`
+
+ 
+
+**进阶：**你能否用 `O(n)` 时间复杂度和 `O(1)` 空间复杂度解决此题？
+
+通过次数292,701
+
+提交次数595,055
+
+**我的解法**
+
+回文链表简单来说，就是这个链表的正序和反序内容相同，进一步就是该链表是对称的，题目要求空间复杂度是常量级别，那么不能使用额外的空间。想到从这个链表的中间节点将该链表截断，对左半部分链表进行反转。如下所示：注意题目中如何求解中间所在节点（即第n/2个节点）
+
+~~~xml
+1->4->5->4-1
+1->4	4->1	1-4左半部分进行反转得到4->1，然后和右半部分进行对比
+~~~
+
+~~~java
+public ListNode reverseNode(ListNode head){
+        if(head==null||head.next==null){
+            return head;
+        }
+        ListNode next=head.next;
+        ListNode reverseHead=reverseNode(next);
+        next.next=head;
+        head.next=null;
+        return reverseHead;
+    }
+    public boolean isPalindrome(ListNode head) {
+        if(head==null||head.next==null){
+            return true;
+        }
+        //fast节点先前进2步
+        ListNode slow=head,fast=head.next;
+        //找到中间的节点，中间被slow节点指向
+        while(fast.next!=null&&fast.next.next!=null){
+            slow=slow.next;
+            fast=fast.next.next;
+        }
+        //当前是奇数还是偶数个节点
+        boolean odd=(fast.next!=null); 
+        ListNode nextNode=odd?slow.next.next:slow.next;
+        slow.next=null;
+        //反转head到slow节点
+        ListNode reverseHead=reverseNode(head);
+        ListNode p=nextNode,q=reverseHead;
+        while(p!=null&&q!=null){
+            if(p.val!=q.val){
+                return false;
+            }
+            p=p.next;
+            q=q.next;
+        }
+        return p==null&&q==null;
+    }
+~~~
+
+**递归解法**
+
+~~~java
+  private ListNode frontPointer;
+
+    private boolean recursivelyCheck(ListNode currentNode) {
+        if (currentNode != null) {
+            if (!recursivelyCheck(currentNode.next)) {
+                return false;
+            }
+            if (currentNode.val != frontPointer.val) {
+                return false;
+            }
+            frontPointer = frontPointer.next;
+        }
+        return true;
+    }
+
+    public boolean isPalindrome(ListNode head) {
+        frontPointer = head;
+        return recursivelyCheck(head);
+    }
+~~~
+
+
+
+#### [238. 除自身以外数组的乘积](https://leetcode-cn.com/problems/product-of-array-except-self/)
+
+难度中等892
+
+给你一个长度为 *n* 的整数数组 `nums`，其中 *n* > 1，返回输出数组 `output` ，其中 `output[i]` 等于 `nums` 中除 `nums[i]` 之外其余各元素的乘积。
+
+ 
+
+**示例:**
+
+```
+输入: [1,2,3,4]
+输出: [24,12,8,6]
+```
+
+ 
+
+**提示：**题目数据保证数组之中任意元素的全部前缀元素和后缀（甚至是整个数组）的乘积都在 32 位整数范围内。
+
+**说明:** 请**不要使用除法，**且在 O(*n*) 时间复杂度内完成此题。
+
+**进阶：**
+你可以在常数空间复杂度内完成这个题目吗？（ 出于对空间复杂度分析的目的，输出数组**不被视为**额外空间。）
+
+通过次数131,417
+
+提交次数181,901
+
+**传统的直接做法**
+
+注意数字0的影响，当数组中超过1个0的时候，返回结果数组全部是0；如果只有1个0时，除了0对应的返回结果，其它都是0。
+
+~~~java
+ public int[] productExceptSelf(int[] nums) {
+        AtomicInteger zeroCount=new AtomicInteger();
+        int productAll=Arrays.stream(nums).boxed().collect(Collectors.toList()).stream().reduce(1,(x,y)->{
+            if(y==0){
+                zeroCount.incrementAndGet();
+                return x;
+            }
+            return x*y;
+        });
+        int[] ans=new int[nums.length];
+        if(zeroCount.get()>=2){
+            return ans;
+        }
+        int i=0;
+        for(int num:nums){
+            ans[i++]=num==0?(int)productAll:zeroCount.get()>0?0:productAll/num;
+        }
+        return ans;
+    }
+~~~
+
+
+
+**官方解答1：左右乘积列表**
+
+~~~java
+public int[] productExceptSelf(int[] nums) {
+        int length = nums.length;
+
+        // L 和 R 分别表示左右两侧的乘积列表
+        int[] L = new int[length];
+        int[] R = new int[length];
+
+        int[] answer = new int[length];
+
+        // L[i] 为索引 i 左侧所有元素的乘积
+        // 对于索引为 '0' 的元素，因为左侧没有元素，所以 L[0] = 1
+        L[0] = 1;
+        for (int i = 1; i < length; i++) {
+            L[i] = nums[i - 1] * L[i - 1];
+        }
+
+        // R[i] 为索引 i 右侧所有元素的乘积
+        // 对于索引为 'length-1' 的元素，因为右侧没有元素，所以 R[length-1] = 1
+        R[length - 1] = 1;
+        for (int i = length - 2; i >= 0; i--) {
+            R[i] = nums[i + 1] * R[i + 1];
+        }
+
+        // 对于索引 i，除 nums[i] 之外其余各元素的乘积就是左侧所有元素的乘积乘以右侧所有元素的乘积
+        for (int i = 0; i < length; i++) {
+            answer[i] = L[i] * R[i];
+        }
+
+        return answer;
+    }
+~~~
+
+
+
+**空间复杂度$o(n)$优化**
+
+~~~java
+  public int[] productExceptSelf(int[] nums) {
+        int length = nums.length;
+        int[] answer = new int[length];
+
+        // answer[i] 表示索引 i 左侧所有元素的乘积
+        // 因为索引为 '0' 的元素左侧没有元素， 所以 answer[0] = 1
+        answer[0] = 1;
+        for (int i = 1; i < length; i++) {
+            answer[i] = nums[i - 1] * answer[i - 1];
+        }
+
+        // R 为右侧所有元素的乘积
+        // 刚开始右边没有元素，所以 R = 1
+        int R = 1;
+        for (int i = length - 1; i >= 0; i--) {
+            // 对于索引 i，左边的乘积为 answer[i]，右边的乘积为 R
+            answer[i] = answer[i] * R;
+            // R 需要包含右边所有的乘积，所以计算下一个结果时需要将当前值乘到 R 上
+            R *= nums[i];
+        }
+        return answer;
+    }
+~~~
+
+
+
+## 2021年9月
+
+#### [35. 搜索插入位置](https://leetcode-cn.com/problems/search-insert-position/)
+
+难度简单1051
+
+给定一个排序数组和一个目标值，在数组中找到目标值，并返回其索引。如果目标值不存在于数组中，返回它将会被按顺序插入的位置。
+
+请必须使用时间复杂度为 `O(log n)` 的算法。
+
+ 
+
+**示例 1:**
+
+```
+输入: nums = [1,3,5,6], target = 5
+输出: 2
+```
+
+**示例 2:**
+
+```
+输入: nums = [1,3,5,6], target = 2
+输出: 1
+```
+
+**示例 3:**
+
+```
+输入: nums = [1,3,5,6], target = 7
+输出: 4
+```
+
+**示例 4:**
+
+```
+输入: nums = [1,3,5,6], target = 0
+输出: 0
+```
+
+**示例 5:**
+
+```
+输入: nums = [1], target = 0
+输出: 0
+```
+
+ 
+
+**提示:**
+
+- `1 <= nums.length <= 104`
+- `-104 <= nums[i] <= 104`
+- `nums` 为**无重复元素**的**升序**排列数组
+- `-104 <= target <= 104`
+
+通过次数480,935
+
+提交次数1,032,609
+
+**直接解法**
+
+题目比较简单，使用的是二分查找，二分查找的终止条件是$low=high+1$，从判断条件上来说如果当前的数字不在当前数组中，那么数组插入的位置一定是$low$。
+
+~~~java
+  public int searchInsert(int[] nums, int target) {
+        int low=0,high=nums.length-1;
+        while(low<=high){
+            int mid=low+(high-low)/2;
+            if(nums[mid]==target){
+                return mid;
+            }else if(nums[mid]>target){
+                high=mid-1;
+            }else{
+                low=mid+1;
+            }
+        }
+        return high+1;
+    }
+~~~
+
+
+
+#### [38. 外观数列](https://leetcode-cn.com/problems/count-and-say/)
+
+难度中等737
+
+给定一个正整数 `n` ，输出外观数列的第 `n` 项。
+
+「外观数列」是一个整数序列，从数字 1 开始，序列中的每一项都是对前一项的描述。
+
+你可以将其视作是由递归公式定义的数字字符串序列：
+
+- `countAndSay(1) = "1"`
+- `countAndSay(n)` 是对 `countAndSay(n-1)` 的描述，然后转换成另一个数字字符串。
+
+前五项如下：
+
+```
+1.     1
+2.     11
+3.     21
+4.     1211
+5.     111221
+第一项是数字 1 
+描述前一项，这个数是 1 即 “ 一 个 1 ”，记作 "11"
+描述前一项，这个数是 11 即 “ 二 个 1 ” ，记作 "21"
+描述前一项，这个数是 21 即 “ 一 个 2 + 一 个 1 ” ，记作 "1211"
+描述前一项，这个数是 1211 即 “ 一 个 1 + 一 个 2 + 二 个 1 ” ，记作 "111221"
+```
+
+要 **描述** 一个数字字符串，首先要将字符串分割为 **最小** 数量的组，每个组都由连续的最多 **相同字符** 组成。然后对于每个组，先描述字符的数量，然后描述字符，形成一个描述组。要将描述转换为数字字符串，先将每组中的字符数量用数字替换，再将所有描述组连接起来。
+
+例如，数字字符串 `"3322251"` 的描述如下图：
+
+![img](https://pic.leetcode-cn.com/1629874763-TGmKUh-image.png)
+
+
+
+ 
+
+**示例 1：**
+
+```
+输入：n = 1
+输出："1"
+解释：这是一个基本样例。
+```
+
+**示例 2：**
+
+```
+输入：n = 4
+输出："1211"
+解释：
+countAndSay(1) = "1"
+countAndSay(2) = 读 "1" = 一 个 1 = "11"
+countAndSay(3) = 读 "11" = 二 个 1 = "21"
+countAndSay(4) = 读 "21" = 一 个 2 + 一 个 1 = "12" + "11" = "1211"
+```
+
+ 
+
+**提示：**
+
+- `1 <= n <= 30`
+
+通过次数211,339
+
+提交次数364,490
+
+**直接解法**
+
+实质上是统计字符串中连续相同的数字的个数，拼接字符串的时候使用StringBuilder，提高效率，将字符串转换成char数组，从定义上来看本质就是一个递归调用。
+
+~~~java
+ public String countAndSay(int n) {
+        if(n==1){
+            return "1";
+        }
+        String preAns=countAndSay(n-1);
+        StringBuilder ans=new StringBuilder();
+        int count=1;
+        char[] chArr=preAns.toCharArray();
+        char ch=chArr[0];
+        for(int i=1;i<chArr.length;i++){
+            if(chArr[i]==ch){
+                count++;
+            }else{
+                ans.append(count).append(ch-'0');
+                count=1;
+                ch=chArr[i];
+            }
+        }
+        ans.append(count).append(ch-'0');
+        return ans.toString();
+    }
+~~~
+
+#### [278. 第一个错误的版本](https://leetcode-cn.com/problems/first-bad-version/)
+
+难度简单399
+
+你是产品经理，目前正在带领一个团队开发新的产品。不幸的是，你的产品的最新版本没有通过质量检测。由于每个版本都是基于之前的版本开发的，所以错误的版本之后的所有版本都是错的。
+
+假设你有 `n` 个版本 `[1, 2, ..., n]`，你想找出导致之后所有版本出错的第一个错误的版本。
+
+你可以通过调用 `bool isBadVersion(version)` 接口来判断版本号 `version` 是否在单元测试中出错。实现一个函数来查找第一个错误的版本。你应该尽量减少对调用 API 的次数。
+
+**示例 1：**
+
+```
+输入：n = 5, bad = 4
+输出：4
+解释：
+调用 isBadVersion(3) -> false 
+调用 isBadVersion(5) -> true 
+调用 isBadVersion(4) -> true
+所以，4 是第一个错误的版本。
+```
+
+**示例 2：**
+
+```
+输入：n = 1, bad = 1
+输出：1
+```
+
+ 
+
+**提示：**
+
+- `1 <= bad <= n <= 231 - 1`
+
+通过次数166,092
+
+提交次数365,001
+
+**直接解法**
+
+题目含义是找出数组中第一个最小的坏的版本，这个版本从定义上来说就是一个有序数组，所以可以采用二分查找形式。注意二分查找mid的构造中算术运算符优先级顺序，位移运算符$>>$优先级低于算术元素符$+$。
+
+~~~java
+ public int firstBadVersion(int n) {
+        int badVersion=-1;
+        int low=1,high=n;
+        while(low<=high){
+            int mid=low+((high-low)>>1);
+            if(isBadVersion(mid)){
+                badVersion=mid;
+                high=mid-1;
+            }else{
+                low=mid+1;
+            }
+        }
+        return badVersion;
+    }
+~~~
+
+
+
+#### [324. 摆动排序 II](https://leetcode-cn.com/problems/wiggle-sort-ii/)
+
+难度中等276
+
+给你一个整数数组 `nums`，将它重新排列成 `nums[0] < nums[1] > nums[2] < nums[3]...` 的顺序。
+
+你可以假设所有输入数组都可以得到满足题目要求的结果。
+
+ 
+
+**示例 1：**
+
+```
+输入：nums = [1,5,1,1,6,4]
+输出：[1,6,1,5,1,4]
+解释：[1,4,1,5,1,6] 同样是符合题目要求的结果，可以被判题程序接受。
+```
+
+**示例 2：**
+
+```
+输入：nums = [1,3,2,2,3,1]
+输出：[2,3,1,3,1,2]
+```
+
+ 
+
+**提示：**
+
+- `1 <= nums.length <= 5 * 104`
+- `0 <= nums[i] <= 5000`
+- 题目数据保证，对于给定的输入 `nums` ，总能产生满足题目要求的结果
+
+ 
+
+**进阶：**你能用 O(n) 时间复杂度和 / 或原地 O(1) 额外空间来实现吗？
+
+通过次数24,573
+
+提交次数65,013
+
+**我的解答**
+
+排序算法以及使用了额外的空间复杂度。题目要求是摆动排序，从定义上来说，就是数组按照小大小大的顺序排列。自然的一个想法是想到排序，比如数组$1,1,2,2,3,3$，排好序之后将数组分为低位和高位，低位是$1,1,2$，高位是$2,3,3$，然后依次从低位高位分别抽取数字填充到新的数组。但是对于数组$4,5,5,6$，按照这种抽取方式得到的结果是$4,5,5,6$,不满足定义。我们从右边向左边进行抽取就可以了。
+
+~~~java
+ public void wiggleSort(int[] nums) {
+        Arrays.sort(nums);
+        int len=nums.length;
+        int i=(len+1)/2-1,j=len-1,k=0;
+        int[] ans=new int[len];
+        for(;i>=0;i--){
+            ans[k++]=nums[i];
+            if(j>(len+1)/2-1){
+                ans[k++]=nums[j--];
+            }
+        }
+        for(i=0;i<len;i++){
+            nums[i]=ans[i];
+        }
+    }
+~~~
+
+
+
+**官网解答：快速排序**
+
+时间复杂度是$o(n)$，基本思路是找到中间的一个元素，然后将数组划分成两部分。还有一种更优的解法，空间复杂度是常量级，采用虚拟地址映射思想，不太容易理解，不考虑了。
+
+~~~c++
+void wiggleSort(vector<int>& nums) {
+        auto midptr = nums.begin() + nums.size() / 2;
+        nth_element(nums.begin(), midptr, nums.end());
+        int mid = *midptr;
+        
+        // 3-way-partition
+        int i = 0, j = 0, k = nums.size() - 1;
+        while(j < k){
+            if(nums[j] > mid){
+                swap(nums[j], nums[k]);
+                --k;
+            }
+            else if(nums[j] < mid){
+                swap(nums[j], nums[i]);
+                ++i;
+                ++j;
+            }
+            else{
+                ++j;
+            }
+        }
+        
+        if(nums.size() % 2) ++midptr;
+        vector<int> tmp1(nums.begin(), midptr);
+        vector<int> tmp2(midptr, nums.end());
+        for(int i = 0; i < tmp1.size(); ++i){
+            nums[2 * i] = tmp1[tmp1.size() - 1 - i];
+        }
+        for(int i = 0; i < tmp2.size(); ++i){
+            nums[2 * i + 1] = tmp2[tmp2.size() - 1 - i];
+        }
+    }
+~~~
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
