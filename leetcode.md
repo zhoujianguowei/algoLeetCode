@@ -1236,6 +1236,8 @@ public class Solution {//所有的递归的返回值有4种可能性，null、p�
 
 **本质上就是一个递归的中序遍历，因为二叉搜索树按照中序遍历是递增的**
 
+##### 方法一：递归版本
+
 注意边界条件以及记录上一次访问的数值（或者用默认最小值替换，不推荐）
 
 ~~~java
@@ -1257,6 +1259,59 @@ public class Solution {//所有的递归的返回值有4种可能性，null、p�
         return false;
     }
 ~~~
+
+
+
+##### 方法二：迭代版本
+
+~~~java
+ public boolean isValidBST(TreeNode root) {
+        Deque<TreeNode> stack = new LinkedList<TreeNode>();
+        double inorder = -Double.MAX_VALUE;
+
+        while (!stack.isEmpty() || root != null) {
+            while (root != null) {
+                stack.push(root);
+                root = root.left;
+            }
+            root = stack.pop();
+              // 如果中序遍历得到的节点的值小于等于前一个 inorder，说明不是二叉搜索树
+            if (root.val <= inorder) {
+                return false;
+            }
+            inorder = root.val;
+            root = root.right;
+        }
+        return true;
+    }
+
+~~~
+
+
+
+##### 方法三：区间版本
+
+按照递归定义，确定对应节点的左右子树的边界条件。
+
+~~~java
+  public boolean isValidBST(TreeNode root) {
+        return isValidBST(root, Long.MIN_VALUE, Long.MAX_VALUE);
+    }
+
+    public boolean isValidBST(TreeNode node, long lower, long upper) {
+        if (node == null) {
+            return true;
+        }
+        if (node.val <= lower || node.val >= upper) {
+            return false;
+        }
+        return isValidBST(node.left, lower, node.val) && isValidBST(node.right, node.val, upper);
+    }
+
+
+~~~
+
+
 
 
 
@@ -1305,7 +1360,9 @@ public class Solution {//所有的递归的返回值有4种可能性，null、p�
 
 通过次数173,147提交次数313,668
 
-**基本实现**
+
+
+##### **基本实现**
 
 递归中返回-1表示子树已经不是平衡的二叉树了
 
@@ -1313,9 +1370,6 @@ public class Solution {//所有的递归的返回值有4种可能性，null、p�
 	public int getHeight(TreeNode root){
         if(root==null){
             return 0;
-        }
-        if(root.left==null&&root.right==null){
-            return 1;
         }
         int leftDepth=getHeight(root.left);
         int rightDepth=getHeight(root.right);
@@ -1330,7 +1384,9 @@ public class Solution {//所有的递归的返回值有4种可能性，null、p�
     }
 ~~~
 
-**优化实现（实际上是实现了减枝计算）**
+
+
+##### **优化实现（实际上是实现了减枝计算）**
 
 ~~~java
 	public boolean isBalanced(TreeNode root) {
@@ -1425,7 +1481,7 @@ public void flatten(TreeNode root) {
 
 **高效方法（不需要迭代查找到左子树的最后一个节点）**
 
-采用后序的递归遍历算法，不太容易理解。
+采用后序的递归遍历算法，不太容易理解。节点需要改变的串联点是左子树的最右节点的右指针指向当前节点，该方法记忆了左孩子的最后一个访问节点。
 
 ~~~c++
    TreeNode* last = nullptr;
@@ -1612,7 +1668,7 @@ iterator.hasNext(); // 返回 false
 
 **提示：**
 
-- `next()` 和 `hasNext()` 操作的时间复杂度是 O(1)，并使用 O(*h*) 内存，其中 *h *是树的高度。
+- `next()` 和 `hasNext()` 操作的时间复杂度是 $O(1)$，并使用 O(*h*) 内存，其中 *h*是树的高度。
 - 你可以假设 `next()` 调用总是有效的，也就是说，当调用 `next()` 时，BST 中至少存在一个下一个最小的数。
 
 通过次数37,585提交次数49,556
@@ -1708,7 +1764,7 @@ class BSTIterator {
 
 难度中等776收藏分享切换为英文接收动态反馈
 
-给定一个整数 *n*，生成所有由 1 ... *n* 为节点所组成的** 二叉搜索树 **。
+给定一个整数 *n*，生成所有由 1 ... *n* 为节点所组成的**二叉搜索树**。
 
  
 
@@ -1742,7 +1798,7 @@ class BSTIterator {
 
 通过次数72,923提交次数108,604
 
-**精简的解法**
+##### **精简的解法**
 
 本质上就是不断的递归以及枚举，构建不同的子树，然后将左子树、右子树拼接在一起。
 
@@ -1776,6 +1832,47 @@ public List<TreeNode> generateTrees(int n) {
         return res;
     }
 ~~~
+
+
+
+##### 递归解法
+
+从二叉搜索树的定义，自然能够联想到以下递归过程，当前节点所能够构成的二叉搜索树序列，应该由小于当前节点的二叉搜索树和大于该节点的二叉搜索树笛卡尔积组成。**注意，为了方便统一做处理，如果子树序列为空，返回空列表，列表里面有一个null**
+
+~~~java
+public List<TreeNode> generateTrees(int n) {
+        int[] nums=new int[n];
+        for(int i=1;i<=n;i++){
+            nums[i-1]=i;
+        }
+        return dfs(nums,0,n-1);
+    }
+    public List<TreeNode> dfs(int[] nums,int left,int right){
+        List<TreeNode> ans=new ArrayList();
+        if(left>right){
+            ans.add(null);
+            return ans;
+        }
+        for(int i=left;i<=right;i++){
+            List<TreeNode> leftChildren=dfs(nums,left,i-1);
+            List<TreeNode> rightChildren=dfs(nums,i+1,right);
+            for(TreeNode leftChild:leftChildren){
+                for(TreeNode rightChild:rightChildren){
+                    TreeNode root=new TreeNode(nums[i]);
+                    root.left=leftChild;
+                    root.right=rightChild;
+                    ans.add(root);
+                }
+
+            }
+        }
+        return ans;
+    }
+~~~
+
+
+
+
 
 
 
@@ -2700,10 +2797,16 @@ B是A的子结构， 即 A中有出现和B相同的结构和节点值。
 例如:
 给定的树 A:
 
-`     3    / \   4   5  / \ 1   2`
+  3
+  / \
+  4  5
+ / \
+ 1  2
 给定的树 B：
 
-`   4   / 1`
+  4 
+ /
+ 1
 返回 true，因为 B 与 A 的一个子树拥有相同的结构和节点值。
 
 **示例 1：**
@@ -3344,7 +3447,7 @@ key = 3
 
 
 
-#### [889*. 根据前序和后序遍历构造二叉树](https://leetcode-cn.com/problems/construct-binary-tree-from-preorder-and-postorder-traversal/)
+#### [889. 根据前序和后序遍历构造二叉树](https://leetcode-cn.com/problems/construct-binary-tree-from-preorder-and-postorder-traversal/)
 
 难度中等141收藏分享切换为英文接收动态反馈
 
@@ -3379,7 +3482,7 @@ key = 3
 代码如下：
 
 ~~~java
-Map<Integer, Integer> preMap = new HashMap();
+    Map<Integer, Integer> preMap = new HashMap();
     Map<Integer, Integer> postMap = new HashMap();
 
     public TreeNode constructFromPrePost(int[] pre, int i, int j, int[] post, int m, int n) {
@@ -3449,7 +3552,7 @@ Map<Integer, Integer> preMap = new HashMap();
 
 
 
-**我的解法**
+##### **我的解法**
 
 最长连续序列容易想到一种递归方法，以当前根节点作为起始节点，最长的递增或者递减的序列长度。由于题目中要求可能是递增的也可能是递减的，为了减少代码实现的复杂度，调用两次，分别表示最长递增的子序列以及最长递减的子序列。以最长递减子序列为例，根节点最长的序列可能是来自于当前根节点和左子树、根节点和右子树，以及根节点和左右子树。(**左右子树这种方式，二者的序列增长方式相反，以递减序列为例，要求从根节点出发的左子树是递减的，从根节点出发的右子树是递增的**)。为了减少重复的查询，采用备忘录模式，记录每次遍历的节点递增或者递减的序列最大长度。代码如下：
 
@@ -3507,7 +3610,7 @@ Map<Integer, Integer> preMap = new HashMap();
 
 
 
-**官方版本**
+##### **官方版本**
 
 ~~~java
 	int maxval = 0;
@@ -3540,7 +3643,7 @@ Map<Integer, Integer> preMap = new HashMap();
 
 
 
-#### [669*. 修剪二叉搜索树](https://leetcode-cn.com/problems/trim-a-binary-search-tree/)
+#### [669. 修剪二叉搜索树](https://leetcode-cn.com/problems/trim-a-binary-search-tree/)
 
 难度中等350收藏分享切换为英文接收动态反馈
 
@@ -3627,7 +3730,7 @@ public TreeNode trimBST(TreeNode root, int low, int high) {
 
 
 
-#### [285.* 二叉搜索树中的顺序后继](https://leetcode-cn.com/problems/inorder-successor-in-bst/)
+#### [285. 二叉搜索树中的顺序后继](https://leetcode-cn.com/problems/inorder-successor-in-bst/)
 
 难度中等88收藏分享切换为英文接收动态反馈
 
@@ -3639,7 +3742,7 @@ public TreeNode trimBST(TreeNode root, int low, int high) {
 
 **示例 1:**
 
-![img](https://assets.leetcode.com/uploads/2019/01/23/285_example_1.PNG)
+![img](http://assets.leetcode.com/uploads/2019/01/23/285_example_1.PNG)
 
 ```
 输入: root = [2,1,3], p = 1
@@ -3668,7 +3771,7 @@ public TreeNode trimBST(TreeNode root, int low, int high) {
 
 通过次数5,431提交次数8,581
 
-**答案**
+##### **答案**
 
 常规做法，利用二叉搜索树的性质，设当前所在根节点是$root$，递归结束条件是当前节点为空或者是叶子；否则遍历左右子树，如果目标值不小于$root$,后继节点肯定在右子树上（也有可能为空），**否则一定在左子树或者是当前根节点**（如果左子树上存在其后继，那么是当前节点的最近后继，否则就是当前根节点）。
 
@@ -3697,16 +3800,14 @@ public TreeNode inorderSuccessor(TreeNode root, TreeNode p) {
 
 
 
-**非递归做法**
+##### **非递归做法**
 
 节点$c$表示不小于$p$的最后一个节点
 
 ~~~java
 public TreeNode inorderSuccessor(TreeNode root, TreeNode p) {
         TreeNode r = null;
-        
         TreeNode c = root;
-        
         while(c!=null && c!=p){
             if(p.val < c.val){
                 r = c;
@@ -3767,19 +3868,33 @@ public TreeNode inorderSuccessor(TreeNode root, TreeNode p) {
 
 通过次数3,593提交次数7,809
 
-**题解**
+##### **题解**
 
 刚开始没有思路，看了评论才知道如何去判断。先序遍历顺序是$root>left>right$的形式，也就是说从当前遍历节点出发，遍历整个序列查找到第一个比当前节点大的节点，那么该节点以及该节点之后的序列都是右子树，即要求该节点以及以后的节点的值都大于根节点。
 
 双重循环暴力破解，算法时间复杂度$O(n^2)$
 
+~~~java
+public boolean verifyPreorder(int[] preorder) {
+        int length=preorder.length;
+        for(int i=0;i<length;i++){
+            boolean bigger=false;
+            for(int j=i+1;j<length;j++){
+                if(bigger&&preorder[i]>preorder[j]){
+                    return false;
+                }
+                if(preorder[i]<preorder[j]){
+                    bigger=true;
+                }
+            }
+        }
+        return true;
+    }
 ~~~
 
-~~~
 
 
-
-**方法二单调栈**
+##### **方法二单调栈 **
 
 维护一个单调递减栈（从栈顶到栈底），如某一状态下栈元素为$[5,4,3]$。若碰到一个$6$的时候，说明从左子树（或者没有左子树）到达了右子树，此时将小于$6$的元素都pop掉，栈变成$[6]$,并且记录一个最小值为$5$，由于$6$是右子树，因此$6$右侧的元素都必须大于$5$，否则不合法。
 
@@ -10232,6 +10347,42 @@ public boolean leafSimilar(TreeNode root1, TreeNode root2) {
 
 
 
+##### 后续遍历
+
+只要保证左子树先于右子树访问即可
+
+~~~java
+public void postOrder(TreeNode root,List<Integer> ans){
+        if(root==null){
+            return;
+        }
+        postOrder(root.left,ans);
+        postOrder(root.right,ans);
+        if(root.left==null&&root.right==null){
+            ans.add(root.val);
+        }
+    }
+    public boolean leafSimilar(TreeNode root1, TreeNode root2) {
+        List<Integer> r1=new ArrayList();
+        List<Integer> r2=new ArrayList();
+        postOrder(root1,r1);
+        postOrder(root2,r2);
+        if(r1.size()!=r2.size()){
+            return false;
+        }
+        for(int i=0;i<r1.size();i++){
+            if(r1.get(i)!=r2.get(i)){
+                return false;
+            }
+        }
+        return true;
+    }
+~~~
+
+
+
+
+
 #### [29. 两数相除](https://leetcode-cn.com/problems/divide-two-integers/)
 
 难度中等548收藏分享切换为英文接收动态反馈
@@ -15379,44 +15530,1866 @@ void wiggleSort(vector<int>& nums) {
 
 
 
+## 2022年7月
+
+#### [389. 找不同](https://leetcode.cn/problems/find-the-difference/)
+
+难度简单328收藏分享切换为英文接收动态反馈
+
+给定两个字符串 `s` 和 `t` ，它们只包含小写字母。
+
+字符串 `t` 由字符串 `s` 随机重排，然后在随机位置添加一个字母。
+
+请找出在 `t` 中被添加的字母。
+
+ 
+
+**示例 1：**
+
+```
+输入：s = "abcd", t = "abcde"
+输出："e"
+解释：'e' 是那个被添加的字母。
+```
+
+**示例 2：**
+
+```
+输入：s = "", t = "y"
+输出："y"
+```
+
+ 
+
+**提示：**
+
+- `0 <= s.length <= 1000`
+- `t.length == s.length + 1`
+- `s` 和 `t` 只包含小写字母
+
+通过次数130,912
+
+提交次数192,186
+
+##### 我的解法
+
+题目相对比较简单，按照题目大意字符串t中的字符（不考虑顺序）只是比s多了一个，这个字符可能是s中的，也可能是不在s中。简单的做法就是直接排序、统计，但是这种方法算法复杂度过高$nlgn$，可以直接进行字符统计
+
+```java
+  public char findTheDifference(String s, String t) {
+        int[] chCount=new int[26];
+        char[] sArr=s.toCharArray();
+        char[] tArr=t.toCharArray();
+        for(char ch:sArr){
+            chCount[ch-'a']++;
+        }
+        for(char ch:tArr){
+           if(chCount[ch-'a']==0){
+               return ch;
+           }
+           chCount[ch-'a']--;
+        }
+        return '0';
+    }
+```
 
 
 
+##### 官方解法二：求和
+
+```java
+  public char findTheDifference(String s, String t) {
+        int as = 0, at = 0;
+        for (int i = 0; i < s.length(); ++i) {
+            as += s.charAt(i);
+        }
+        for (int i = 0; i < t.length(); ++i) {
+            at += t.charAt(i);
+        }
+        return (char) (at - as);
+    }
+
+```
 
 
 
+**还有方法三位运算**
 
 
 
+#### [160. 相交链表](https://leetcode.cn/problems/intersection-of-two-linked-lists/)
+
+难度简单1761收藏分享切换为英文接收动态反馈
+
+给你两个单链表的头节点 `headA` 和 `headB` ，请你找出并返回两个单链表相交的起始节点。如果两个链表不存在相交节点，返回 `null` 。
+
+图示两个链表在节点 `c1` 开始相交**：**
+
+[![img](https://assets.leetcode-cn.com/aliyun-lc-upload/uploads/2018/12/14/160_statement.png)](https://assets.leetcode-cn.com/aliyun-lc-upload/uploads/2018/12/14/160_statement.png)
+
+题目数据 **保证** 整个链式结构中不存在环。
+
+**注意**，函数返回结果后，链表必须 **保持其原始结构** 。
+
+**自定义评测：**
+
+**评测系统** 的输入如下（你设计的程序 **不适用** 此输入）：
+
+- `intersectVal` - 相交的起始节点的值。如果不存在相交节点，这一值为 `0`
+- `listA` - 第一个链表
+- `listB` - 第二个链表
+- `skipA` - 在 `listA` 中（从头节点开始）跳到交叉节点的节点数
+- `skipB` - 在 `listB` 中（从头节点开始）跳到交叉节点的节点数
+
+评测系统将根据这些输入创建链式数据结构，并将两个头节点 `headA` 和 `headB` 传递给你的程序。如果程序能够正确返回相交节点，那么你的解决方案将被 **视作正确答案** 。
+
+ 
+
+**示例 1：**
+
+[![img](https://assets.leetcode.com/uploads/2021/03/05/160_example_1_1.png)](https://assets.leetcode.com/uploads/2018/12/13/160_example_1.png)
+
+```
+输入：intersectVal = 8, listA = [4,1,8,4,5], listB = [5,6,1,8,4,5], skipA = 2, skipB = 3
+输出：Intersected at '8'
+解释：相交节点的值为 8 （注意，如果两个链表相交则不能为 0）。
+从各自的表头开始算起，链表 A 为 [4,1,8,4,5]，链表 B 为 [5,6,1,8,4,5]。
+在 A 中，相交节点前有 2 个节点；在 B 中，相交节点前有 3 个节点。
+```
+
+**示例 2：**
+
+[![img](https://assets.leetcode.com/uploads/2021/03/05/160_example_2.png)](https://assets.leetcode.com/uploads/2018/12/13/160_example_2.png)
+
+```
+输入：intersectVal = 2, listA = [1,9,1,2,4], listB = [3,2,4], skipA = 3, skipB = 1
+输出：Intersected at '2'
+解释：相交节点的值为 2 （注意，如果两个链表相交则不能为 0）。
+从各自的表头开始算起，链表 A 为 [1,9,1,2,4]，链表 B 为 [3,2,4]。
+在 A 中，相交节点前有 3 个节点；在 B 中，相交节点前有 1 个节点。
+```
+
+**示例 3：**
+
+[![img](https://assets.leetcode-cn.com/aliyun-lc-upload/uploads/2018/12/14/160_example_3.png)](https://assets.leetcode.com/uploads/2018/12/13/160_example_3.png)
+
+```
+输入：intersectVal = 0, listA = [2,6,4], listB = [1,5], skipA = 3, skipB = 2
+输出：null
+解释：从各自的表头开始算起，链表 A 为 [2,6,4]，链表 B 为 [1,5]。
+由于这两个链表不相交，所以 intersectVal 必须为 0，而 skipA 和 skipB 可以是任意值。
+这两个链表不相交，因此返回 null 。
+```
+
+ 
+
+**提示：**
+
+- `listA` 中节点数目为 `m`
+- `listB` 中节点数目为 `n`
+- `1 <= m, n <= 3 * 104`
+- `1 <= Node.val <= 105`
+- `0 <= skipA <= m`
+- `0 <= skipB <= n`
+- 如果 `listA` 和 `listB` 没有交点，`intersectVal` 为 `0`
+- 如果 `listA` 和 `listB` 有交点，`intersectVal == listA[skipA] == listB[skipB]`
+
+ 
+
+**进阶：**你能否设计一个时间复杂度 `O(m + n)` 、仅用 `O(1)` 内存的解决方案？
+
+通过次数508,873
+
+提交次数807,723
+
+##### 解法一：栈
+
+容易想到的第一个解法是通过set方法，还有一种比较容易想到的方法是通过栈的方式，按照题目描述，如果两个链表相交，那么从相交的那个节点起，这两个链表后续的节点都是相同的。自然的解法就是将两个链表节点遍历，存放到栈里，然后取出做比对。
+
+~~~java
+ public ListNode getIntersectionNode(ListNode headA, ListNode headB) {
+        Stack<ListNode> s1=new Stack();
+        Stack<ListNode> s2=new Stack();
+        while(headA!=null||headB!=null){
+            if(headA!=null){
+                s1.push(headA);
+                headA=headA.next;
+            }
+            if(headB!=null){
+                s2.push(headB);
+                headB=headB.next;
+            }
+        }
+        ListNode ans=null;
+        while(!s1.isEmpty()&&!s2.isEmpty()){
+            if(s1.peek()==s2.peek()){
+                ans=s1.peek();
+            }
+            s1.pop();
+            s2.pop();
+        }
+        return ans;
+    }
+~~~
 
 
 
+##### 解法二：截短比较
+
+解法一还是用到了额外的空间，考虑将两个节点的长度拉倒相同。
+
+~~~java
+int getListLength(ListNode node){
+        if(node==null){
+            return 0;
+        }
+        return 1+getListLength(node.next);
+    }
+    public ListNode getIntersectionNode(ListNode headA, ListNode headB) {
+            int al=getListLength(headA);
+            int bl=getListLength(headB);
+            if(al<bl){
+                ListNode tmp=headA;
+                headA=headB;
+                headB=tmp;
+                int tmpLength=al;
+                al=bl;
+                bl=tmpLength;
+            }
+            //cut to same length
+            ListNode pa=headA,pb=headB;
+            int diffLength=al-bl;
+            while(diffLength-->0){
+                pa=pa.next;
+            }
+            while(pa!=null){
+                if(pa==pb){
+                    return pa;
+                }
+                pa=pa.next;
+                pb=pb.next;
+            }
+            return null;
+    }
+~~~
 
 
 
+#### [415. 字符串相加](https://leetcode.cn/problems/add-strings/)
+
+难度简单586收藏分享切换为英文接收动态反馈
+
+给定两个字符串形式的非负整数 `num1` 和`num2` ，计算它们的和并同样以字符串形式返回。
+
+你不能使用任何內建的用于处理大整数的库（比如 `BigInteger`）， 也不能直接将输入的字符串转换为整数形式。
+
+ 
+
+**示例 1：**
+
+```
+输入：num1 = "11", num2 = "123"
+输出："134"
+```
+
+**示例 2：**
+
+```
+输入：num1 = "456", num2 = "77"
+输出："533"
+```
+
+**示例 3：**
+
+```
+输入：num1 = "0", num2 = "0"
+输出："0"
+```
+
+ 
+
+ 
+
+**提示：**
+
+- `1 <= num1.length, num2.length <= 104`
+- `num1` 和`num2` 都只包含数字 `0-9`
+- `num1` 和`num2` 都不包含任何前导零
+
+通过次数216,336
+
+提交次数393,828
+
+##### 我的解法
+
+直接做法，字符串相加，由于是从高位到低位，基本做法就是从低位做拼接，为了提高效率，使用字符数组。
+
+~~~java
+ void addChar(char[] num1,char[] num2,int pos,int carry,char[] ans){
+        int sum=carry;
+        if(pos>=ans.length){
+            return;
+        }
+        int n1l=num1.length,n2l=num2.length;
+        int ansL=ans.length;
+        if(pos<num1.length){
+            sum+=num1[n1l-1-pos]-'0';
+        }
+        if(pos<num2.length){
+            sum+=num2[n2l-1-pos]-'0';
+        }
+        ans[ansL-1-pos]=(char)(sum%10+'0');
+        addChar(num1,num2,pos+1,sum>9?1:0,ans);
+    }
+    public String addStrings(String num1, String num2) {
+        int maxLength=Math.max(num1.length(),num2.length());
+        char[] ans=new char[maxLength+1];
+        Arrays.fill(ans,'0');
+        addChar(num1.toCharArray(),num2.toCharArray(),0,0,ans);
+        int start=0;
+        if(ans[start]=='0'){
+            start++;
+        }else{
+            maxLength++;
+        }
+        String result=new String(ans,start,maxLength);
+        return result;
+    }
+~~~
 
 
 
+##### 官方精简写法
+
+~~~java
+ public String addStrings(String num1, String num2) {
+        int i = num1.length() - 1, j = num2.length() - 1, add = 0;
+        StringBuffer ans = new StringBuffer();
+        while (i >= 0 || j >= 0 || add != 0) {
+            int x = i >= 0 ? num1.charAt(i) - '0' : 0;
+            int y = j >= 0 ? num2.charAt(j) - '0' : 0;
+            int result = x + y + add;
+            ans.append(result % 10);
+            add = result / 10;
+            i--;
+            j--;
+        }
+        // 计算完以后的答案需要翻转过来
+        ans.reverse();
+        return ans.toString();
+    }
+~~~
 
 
 
+#### [122. 买卖股票的最佳时机 II](https://leetcode.cn/problems/best-time-to-buy-and-sell-stock-ii/)
+
+难度中等1761收藏分享切换为英文接收动态反馈
+
+给你一个整数数组 `prices` ，其中 `prices[i]` 表示某支股票第 `i` 天的价格。
+
+在每一天，你可以决定是否购买和/或出售股票。你在任何时候 **最多** 只能持有 **一股** 股票。你也可以先购买，然后在 **同一天** 出售。
+
+返回 *你能获得的 **最大** 利润* 。
+
+ 
+
+**示例 1：**
+
+```
+输入：prices = [7,1,5,3,6,4]
+输出：7
+解释：在第 2 天（股票价格 = 1）的时候买入，在第 3 天（股票价格 = 5）的时候卖出, 这笔交易所能获得利润 = 5 - 1 = 4 。
+     随后，在第 4 天（股票价格 = 3）的时候买入，在第 5 天（股票价格 = 6）的时候卖出, 这笔交易所能获得利润 = 6 - 3 = 3 。
+     总利润为 4 + 3 = 7 。
+```
+
+**示例 2：**
+
+```
+输入：prices = [1,2,3,4,5]
+输出：4
+解释：在第 1 天（股票价格 = 1）的时候买入，在第 5 天 （股票价格 = 5）的时候卖出, 这笔交易所能获得利润 = 5 - 1 = 4 。
+     总利润为 4 。
+```
+
+**示例 3：**
+
+```
+输入：prices = [7,6,4,3,1]
+输出：0
+解释：在这种情况下, 交易无法获得正利润，所以不参与交易可以获得最大利润，最大利润为 0 。
+```
+
+ 
+
+**提示：**
+
+- `1 <= prices.length <= 3 * 104`
+- `0 <= prices[i] <= 104`
+
+通过次数682,426
+
+提交次数964,189
+
+##### 直接计算
+
+允许多次买入卖出，从曲线图来看，应该在波谷时买入，紧接着在下一个下降点之前卖出，注意最后一个数值。
+
+~~~java
+  public int maxProfit(int[] prices) {
+        int profit=0;
+        int valley=prices[0];
+        for(int i=0;i<prices.length;i++){
+            valley=Math.min(valley,prices[i]);
+            if(i==prices.length-1){
+                profit+=prices[i]-valley;
+            }
+            //下降点卖出
+            if(i+1<prices.length&&prices[i+1]<prices[i]){
+                //sell
+                profit+=prices[i]-valley;
+                valley=prices[i+1];
+                i++;
+            }
+        }
+        return profit;
+    }
+~~~
 
 
 
+##### 方法二：动态规划
+
+定义$dp[i][0]$表示第$i$天交易完成后没有股票的收益，$dp[i][1]$表示第$i$天交易完成后还持有一张股票的最大收益。那么对应的动态转移方程如下：
+
+交易完成后没有股票的最大收益
+$$
+dp[i][0]=Math.max(dp[i-1][0],dp[i-1][1]+prices[i])
+$$
+
+
+交易完成后持有一张股票的最大收益
+$$
+dp[i][1]=Math.max(dp[i-1][1],dp[i-1][0]-prices[i])
+$$
+
+~~~java
+public int maxProfit(int[] prices) {
+        int n = prices.length;
+        int dp0 = 0, dp1 = -prices[0];
+        for (int i = 1; i < n; ++i) {
+            int newDp0 = Math.max(dp0, dp1 + prices[i]);
+            int newDp1 = Math.max(dp1, dp0 - prices[i]);
+            dp0 = newDp0;
+            dp1 = newDp1;
+        }
+        return dp0;
+    }
+~~~
 
 
 
+##### 官方贪心算法
+
+其实跟方法一相似
+
+~~~java
+  public int maxProfit(int[] prices) {
+        int ans = 0;
+        int n = prices.length;
+        for (int i = 1; i < n; ++i) {
+            ans += Math.max(0, prices[i] - prices[i - 1]);
+        }
+        return ans;
+    }
+~~~
 
 
 
+#### [203. 移除链表元素](https://leetcode.cn/problems/remove-linked-list-elements/)
+
+难度简单963收藏分享切换为英文接收动态反馈
+
+给你一个链表的头节点 `head` 和一个整数 `val` ，请你删除链表中所有满足 `Node.val == val` 的节点，并返回 **新的头节点** 。
+
+ 
+
+**示例 1：**
+
+![img](https://assets.leetcode.com/uploads/2021/03/06/removelinked-list.jpg)
+
+```
+输入：head = [1,2,6,3,4,5,6], val = 6
+输出：[1,2,3,4,5]
+```
+
+**示例 2：**
+
+```
+输入：head = [], val = 1
+输出：[]
+```
+
+**示例 3：**
+
+```
+输入：head = [7,7,7,7], val = 7
+输出：[]
+```
+
+ 
+
+**提示：**
+
+- 列表中的节点数目在范围 `[0, 104]` 内
+- `1 <= Node.val <= 50`
+- `0 <= val <= 50`
+
+通过次数389,845
+
+提交次数723,145
+
+~~~java
+ public ListNode removeElements(ListNode head, int val) {
+        ListNode dummyHead=new ListNode();
+        ListNode p=dummyHead,cur=head;
+        ListNode next=null;
+        while(cur!=null){
+            next=cur.next;
+            //set cur next null
+            cur.next=null;
+            if(cur.val!=val){
+                p.next=cur;
+                p=cur;
+            }
+            cur=next;
+        }
+        return dummyHead.next;
+    }
+~~~
 
 
 
+#### [剑指 Offer 03. 数组中重复的数字](https://leetcode.cn/problems/shu-zu-zhong-zhong-fu-de-shu-zi-lcof/)
+
+难度简单896收藏分享切换为英文接收动态反馈
+
+找出数组中重复的数字。
+
+
+在一个长度为 n 的数组 nums 里的所有数字都在 0～n-1 的范围内。数组中某些数字是重复的，但不知道有几个数字重复了，也不知道每个数字重复了几次。请找出数组中任意一个重复的数字。
+
+**示例 1：**
+
+```
+输入：
+[2, 3, 1, 0, 2, 5, 3]
+输出：2 或 3 
+```
+
+ 
+
+**限制：**
+
+```
+2 <= n <= 100000
+```
+
+通过次数598,495
+
+提交次数881,196
+
+##### 桶排序算法
+
+~~~java
+  public int findRepeatNumber(int[] nums) {
+        int len=nums.length;
+        boolean[] repeat=new boolean[len];
+        Arrays.fill(repeat,false);
+        for(int num:nums){
+            if(repeat[num]){
+                return num;
+            }
+            repeat[num]=true;
+        }
+        return -1;
+    }
+~~~
 
 
 
+#### [240. 搜索二维矩阵 II](https://leetcode.cn/problems/search-a-2d-matrix-ii/)
+
+难度中等1071收藏分享切换为英文接收动态反馈
+
+编写一个高效的算法来搜索 `*m* x *n*` 矩阵 `matrix` 中的一个目标值 `target` 。该矩阵具有以下特性：
+
+- 每行的元素从左到右升序排列。
+- 每列的元素从上到下升序排列。
+
+ 
+
+**示例 1：**
+
+![img](https://assets.leetcode-cn.com/aliyun-lc-upload/uploads/2020/11/25/searchgrid2.jpg)
+
+```
+输入：matrix = [[1,4,7,11,15],[2,5,8,12,19],[3,6,9,16,22],[10,13,14,17,24],[18,21,23,26,30]], target = 5
+输出：true
+```
+
+**示例 2：**
+
+![img](https://assets.leetcode-cn.com/aliyun-lc-upload/uploads/2020/11/25/searchgrid.jpg)
+
+```
+输入：matrix = [[1,4,7,11,15],[2,5,8,12,19],[3,6,9,16,22],[10,13,14,17,24],[18,21,23,26,30]], target = 20
+输出：false
+```
+
+ 
+
+**提示：**
+
+- `m == matrix.length`
+- `n == matrix[i].length`
+- `1 <= n, m <= 300`
+- `-109 <= matrix[i][j] <= 109`
+- 每行的所有元素从左到右升序排列
+- 每列的所有元素从上到下升序排列
+- `-109 <= target <= 109`
+
+通过次数292,774
+
+提交次数566,616
+
+##### 横向二分查找
+
+只是利用行的有序性来进行二分查找
+
+~~~java
+   int binarySearch(int[] nums,int low,int high,int target){
+        while(low<=high){
+            int mid=(low+high)/2;
+            if(target==nums[mid]){
+                return mid;
+            }else if(target>nums[mid]){
+                low=mid+1;
+            }else{
+                high=mid-1;
+            }
+        }
+        return -1;
+    }
+    public boolean searchMatrix(int[][] matrix, int target) {
+        int m=matrix.length,n=matrix[0].length;
+        for(int i=0;i<m;i++){
+            int index=binarySearch(matrix[i],0,n-1,target);
+            if(index!=-1){
+                return true;
+            }
+        }
+        return false;
+    }
+}
+~~~
 
 
 
+##### 官方：Z字形查找
 
+构建一个查找矩阵，查找矩阵的两个边界分别是左下角和右上角，查找过程的坐标为$(x,y)$(初始时刻为$(0,n-1)$)，对应的左下角坐标是
+
+$(m-1,0)$，比较当前值$target$和$(x,y)$
+
+1. $target$大，由于横向是升序排列的，那么$x$行的所有值都比$target$小，所以下移一行
+2. $target$小，那么这一列$y$的值都比$target$大，所以要左移一列
+
+~~~java
+ public boolean searchMatrix(int[][] matrix, int target) {
+        int m = matrix.length, n = matrix[0].length;
+        int x = 0, y = n - 1;
+        while (x < m && y >= 0) {
+            if (matrix[x][y] == target) {
+                return true;
+            }
+            if (matrix[x][y] > target) {
+                --y;
+            } else {
+                ++x;
+            }
+        }
+        return false;
+    }
+~~~
+
+
+
+#### [118. 杨辉三角](https://leetcode.cn/problems/pascals-triangle/)
+
+难度简单790收藏分享切换为英文接收动态反馈
+
+给定一个非负整数 *`numRows`，*生成「杨辉三角」的前 *`numRows`* 行。
+
+在「杨辉三角」中，每个数是它左上方和右上方的数的和。
+
+![img](https://pic.leetcode-cn.com/1626927345-DZmfxB-PascalTriangleAnimated2.gif)
+
+ 
+
+**示例 1:**
+
+```
+输入: numRows = 5
+输出: [[1],[1,1],[1,2,1],[1,3,3,1],[1,4,6,4,1]]
+```
+
+**示例 2:**
+
+```
+输入: numRows = 1
+输出: [[1]]
+```
+
+ 
+
+**提示:**
+
+- `1 <= numRows <= 30`
+
+通过次数322,905
+
+提交次数429,873
+
+##### 直接求解
+
+~~~java
+ public List<List<Integer>> generate(int numRows) {
+        List<List<Integer>> ans=new ArrayList();
+        for(int i=0;i<numRows;i++){
+            int[] row=new int[i+1];
+            int len=row.length;
+            for(int j=0;j<=(len-1)/2;j++){
+                if(j==0){
+                    row[j]=1;
+                    row[len-1-j]=1;
+                    continue;
+                }
+                //next fill
+                row[j]=ans.get(i-1).get(j-1)+ans.get(i-1).get(j);
+                row[len-1-j]=row[j];
+            }
+            ans.add(Arrays.stream(row).boxed().toList());
+        }
+        return ans;
+    }
+~~~
+
+
+
+#### [221. 最大正方形](https://leetcode.cn/problems/maximal-square/)
+
+难度中等1205收藏分享切换为英文接收动态反馈
+
+在一个由 `'0'` 和 `'1'` 组成的二维矩阵内，找到只包含 `'1'` 的最大正方形，并返回其面积。
+
+ 
+
+**示例 1：**
+
+![img](https://assets.leetcode.com/uploads/2020/11/26/max1grid.jpg)
+
+```
+输入：matrix = [["1","0","1","0","0"],["1","0","1","1","1"],["1","1","1","1","1"],["1","0","0","1","0"]]
+输出：4
+```
+
+**示例 2：**
+
+![img](https://assets.leetcode.com/uploads/2020/11/26/max2grid.jpg)
+
+```
+输入：matrix = [["0","1"],["1","0"]]
+输出：1
+```
+
+**示例 3：**
+
+```
+输入：matrix = [["0"]]
+输出：0
+```
+
+ 
+
+**提示：**
+
+- `m == matrix.length`
+- `n == matrix[i].length`
+- `1 <= m, n <= 300`
+- `matrix[i][j]` 为 `'0'` 或 `'1'`
+
+通过次数211,813
+
+提交次数431,809
+
+
+
+##### 对角线解法
+
+由于求解的是最大正方形，根据正方形的定义，求解矩阵中每一个以为当前坐标作为正方形左上位置时候的右方和下方最大连续1的个数，然后沿着这个坐标$(x,y)$作为起点，以对角线路径$(x+1,y+1)$来进行遍历，不断收缩正方形边大小，注意终止条件。
+
+~~~java
+ public int maximalSquare(char[][] matrix) {
+        //trace rectangle left top position to right and bottom max distance
+        int m=matrix.length,n=matrix[0].length;
+        int[][] rightDistMatrix=new int[m][n];
+        int[][] bottomDistMatrix=new int[m][n];
+        int i,j,k;
+        for(i=0;i<m;i++){
+            for(j=0;j<n;j++){
+                //max right distance
+                int rightDistance=0;
+                k=j;
+                while(k<n&&matrix[i][k++]=='1'){
+                    rightDistance++;
+                }
+                rightDistMatrix[i][j]=rightDistance;
+                //max bottom distance
+                int bottomDistance=0;
+                k=i;
+                while(k<m&&matrix[k++][j]=='1'){
+                    bottomDistance++;
+                }
+                bottomDistMatrix[i][j]=bottomDistance;
+            }
+        }
+        //scan max matrix along triangle anxis
+        int maxMatrix=0;
+        for(i=0;i<m;i++){
+            for(j=0;j<n;j++){
+                int ans=Math.min(rightDistMatrix[i][j],bottomDistMatrix[i][j]);
+                k=1;
+                while(i+k<m&&j+k<n&&ans>k){
+                    int currentMaxDist=Math.min(rightDistMatrix[i+k][j+k],
+                            bottomDistMatrix[i+k][j+k]);
+                    ans=Math.min(ans,currentMaxDist+k);
+                    if(currentMaxDist==0){
+                        break;
+                    }
+                    k++;
+                }
+                maxMatrix=Math.max(maxMatrix,ans);
+            }
+        }
+        return maxMatrix*maxMatrix;
+    }
+~~~
+
+
+
+##### 官方：动态规划
+
+使用$dp[i][j]$表示以$(i,j)$作为正方形右下角的最大正方形面积，那么得到对应的动态规划转移方程，证明相见
+
+[统计全为 1 的正方形子矩阵]: https://leetcode.cn/problems/count-square-submatrices-with-all-ones/solution/tong-ji-quan-wei-1-de-zheng-fang-xing-zi-ju-zhen-2/
+
+
+$$
+dp[i][j]=Math.min(dp[i-1][j],dp[i-1][j-1],dp[i][j-1])+1
+前提是matrix[i][j]=0
+$$
+代码如下：
+
+~~~java
+ public int maximalSquare(char[][] matrix) {
+        int maxSide = 0;
+        if (matrix == null || matrix.length == 0 || matrix[0].length == 0) {
+            return maxSide;
+        }
+        int rows = matrix.length, columns = matrix[0].length;
+        int[][] dp = new int[rows][columns];
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < columns; j++) {
+                if (matrix[i][j] == '1') {
+                    if (i == 0 || j == 0) {
+                        dp[i][j] = 1;
+                    } else {
+                        dp[i][j] = Math.min(Math.min(dp[i - 1][j], dp[i][j - 1]), dp[i - 1][j - 1]) + 1;
+                    }
+                    maxSide = Math.max(maxSide, dp[i][j]);
+                }
+            }
+        }
+        int maxSquare = maxSide * maxSide;
+        return maxSquare;
+    }
+~~~
+
+
+
+#### [39. 组合总和](https://leetcode.cn/problems/combination-sum/)
+
+难度中等2064收藏分享切换为英文接收动态反馈
+
+给你一个 **无重复元素** 的整数数组 `candidates` 和一个目标整数 `target` ，找出 `candidates` 中可以使数字和为目标数 `target` 的 *所有* **不同组合** ，并以列表形式返回。你可以按 **任意顺序** 返回这些组合。
+
+`candidates` 中的 **同一个** 数字可以 **无限制重复被选取** 。如果至少一个数字的被选数量不同，则两种组合是不同的。 
+
+对于给定的输入，保证和为 `target` 的不同组合数少于 `150` 个。
+
+ 
+
+**示例 1：**
+
+```
+输入：candidates = [2,3,6,7], target = 7
+输出：[[2,2,3],[7]]
+解释：
+2 和 3 可以形成一组候选，2 + 2 + 3 = 7 。注意 2 可以使用多次。
+7 也是一个候选， 7 = 7 。
+仅有这两种组合。
+```
+
+**示例 2：**
+
+```
+输入: candidates = [2,3,5], target = 8
+输出: [[2,2,2,2],[2,3,3],[3,5]]
+```
+
+**示例 3：**
+
+```
+输入: candidates = [2], target = 1
+输出: []
+```
+
+ 
+
+**提示：**
+
+- `1 <= candidates.length <= 30`
+- `1 <= candidates[i] <= 200`
+- `candidate` 中的每个元素都 **互不相同**
+- `1 <= target <= 500`
+
+通过次数551,008
+
+提交次数758,045
+
+
+
+##### 方法一：递归求解
+
+dfs和回溯过程，递归里面的流程是当前节点是否要添加进去
+
+~~~java
+List<List<Integer>> ans=new ArrayList();
+    void dfs(int[] candidates,int target,int index,ArrayList<Integer> result){
+        if(target==0){
+            ans.add(new ArrayList(result));
+            return;
+        }
+        if(index==candidates.length||target<candidates[index]){
+            return;
+        }
+        //minus
+        result.add(candidates[index]);
+        dfs(candidates,target-candidates[index],index,result);
+        result.remove(result.size()-1);
+         //skip current
+        dfs(candidates,target,index+1,result);
+
+    }
+    public List<List<Integer>> combinationSum(int[] candidates, int target) {
+        Arrays.sort(candidates);
+        dfs(candidates,target,0,new ArrayList());
+        return ans;
+    }
+~~~
+
+
+
+##### 方法二：官方解答
+
+常规的trace过程
+
+~~~java
+ List<List<Integer>> pathList=new ArrayList();
+    public List<List<Integer>> combinationSum(int[] candidates, int target) {
+        Arrays.sort(candidates);
+        backtrace(candidates,target,0,0,new ArrayList());
+        return pathList;
+    }
+    void backtrace(int[] candidates,int target,int sum,int startIndex,List<Integer> path) {
+        if(sum==target){
+            pathList.add(new ArrayList(path));
+            return;
+        }
+        for(int i=startIndex;i<candidates.length;i++){
+            if(sum+candidates[i]<=target){
+                path.add(candidates[i]);
+                backtrace(candidates,target,sum+candidates[i],i,path);
+                path.remove(path.size()-1);
+            }            
+        }
+    }
+~~~
+
+
+
+#### [191. 位1的个数](https://leetcode.cn/problems/number-of-1-bits/)
+
+难度简单489收藏分享切换为英文接收动态反馈
+
+编写一个函数，输入是一个无符号整数（以二进制串的形式），返回其二进制表达式中数字位数为 '1' 的个数（也被称为[汉明重量](https://baike.baidu.com/item/汉明重量)）。
+
+ 
+
+**提示：**
+
+- 请注意，在某些语言（如 Java）中，没有无符号整数类型。在这种情况下，输入和输出都将被指定为有符号整数类型，并且不应影响您的实现，因为无论整数是有符号的还是无符号的，其内部的二进制表示形式都是相同的。
+- 在 Java 中，编译器使用[二进制补码](https://baike.baidu.com/item/二进制补码/5295284)记法来表示有符号整数。因此，在上面的 **示例 3** 中，输入表示有符号整数 `-3`。
+
+ 
+
+**示例 1：**
+
+```
+输入：00000000000000000000000000001011
+输出：3
+解释：输入的二进制串 00000000000000000000000000001011 中，共有三位为 '1'。
+```
+
+**示例 2：**
+
+```
+输入：00000000000000000000000010000000
+输出：1
+解释：输入的二进制串 00000000000000000000000010000000 中，共有一位为 '1'。
+```
+
+**示例 3：**
+
+```
+输入：11111111111111111111111111111101
+输出：31
+解释：输入的二进制串 11111111111111111111111111111101 中，共有 31 位为 '1'。
+```
+
+ 
+
+**提示：**
+
+- 输入必须是长度为 `32` 的 **二进制串** 。
+
+
+
+ 
+
+**进阶**：
+
+- 如果多次调用这个函数，你将如何优化你的算法？
+
+通过次数267,905
+
+提交次数352,677
+
+##### 方法一：转换取反
+
+我的解法，输入数值如果是非负数直接按照位移计算累加即可，如果是负数，实际上计算的是这个负数对应的补码对应的绝对值的1的个数。将其转换得到该补码对应的绝对值，为了避免整数位溢出，转换为$long$类型，转换公式**(还要添加符号位的一个1)**
+$$
+pos=Integer.MAX\_VALUE+1L+n
+$$
+
+
+~~~java
+// you need to treat n as an unsigned value
+    public int hammingWeight(int n) {
+        long pos=n;
+        boolean isNeg=false;
+        //if negative, get corresponding positive
+        if(n<0){
+            isNeg=true;
+            pos=Integer.MAX_VALUE+1L+n;
+        }
+        int oneCount=isNeg?1:0;
+        while(pos>0){
+            if((pos&1)==1){
+                oneCount++;
+            }
+            pos>>=1;
+        }
+        return oneCount;
+    }
+~~~
+
+
+
+##### 官方解法二：算数右移
+
+直接利用有符号算数右移即可
+
+~~~java
+ public int hammingWeight(int n) {
+        int ret = 0;
+        for (int i = 0; i < 32; i++) {
+            if ((n & (1 << i)) != 0) {
+                ret++;
+            }
+        }
+        return ret;
+    }
+~~~
+
+
+
+##### 官方解法二：位运算优化
+
+利用性质$n\&(n-1)$的值把 $n$ 的二进制位中的最低位的 $1 $变为 $0$ 之后的结果性质，不断的转换$n$，直到当前为$0$，循环终止。
+
+~~~java
+public int hammingWeight(int n) {
+        int ret = 0;
+        while (n != 0) {
+            n &= n - 1;
+            ret++;
+        }
+        return ret;
+    }
+~~~
+
+
+
+#### [179. 最大数](https://leetcode.cn/problems/largest-number/)
+
+难度中等970收藏分享切换为英文接收动态反馈
+
+给定一组非负整数 `nums`，重新排列每个数的顺序（每个数不可拆分）使之组成一个最大的整数。
+
+**注意：**输出结果可能非常大，所以你需要返回一个字符串而不是整数。
+
+ 
+
+**示例 1：**
+
+```
+输入：nums = [10,2]
+输出："210"
+```
+
+**示例 2：**
+
+```
+输入：nums = [3,30,34,5,9]
+输出："9534330"
+```
+
+ 
+
+**提示：**
+
+- `1 <= nums.length <= 100`
+- `0 <= nums[i] <= 109`
+
+通过次数164,368
+
+提交次数399,449
+
+##### 我的解法
+
+直接是字符串排序，注意数值都是$0$的情景。
+
+~~~java
+ int compareLexical(Integer num1,Integer num2){
+        String s1=String.valueOf(num1);
+        String s2=String.valueOf(num2);
+        String beforeS1=s1+s2;
+        String beforeS2=s2+s1;
+        return beforeS2.compareTo(beforeS1); 
+    }
+    public String largestNumber(int[] nums) {
+        Comparator<Integer> comparator=this::compareLexical;
+        List<Integer> numList=Arrays.stream(nums).boxed().collect(Collectors.toList());
+        numList.sort(comparator);
+        StringBuilder ans=new StringBuilder();
+        boolean empty=true;
+        for(Integer num:numList){
+            if(num==0&&empty){
+                continue;
+            }
+            ans.append(num);
+            empty=false;
+        }
+        
+        return empty?"0":ans.toString();
+    }
+~~~
+
+
+
+##### 官方解答：数值排序
+
+没有采用字符串拼接比较的方式，而是直接使用数值比较。其中$sy*x+y$表示$y,x$的拼接结果,$sx*y+x$表示$x,y$的拼接结果。
+
+~~~java
+ public String largestNumber(int[] nums) {
+        int n = nums.length;
+        // 转换成包装类型，以便传入 Comparator 对象（此处为 lambda 表达式）
+        Integer[] numsArr = new Integer[n];
+        for (int i = 0; i < n; i++) {
+            numsArr[i] = nums[i];
+        }
+
+        Arrays.sort(numsArr, (x, y) -> {
+            long sx = 10, sy = 10;
+            while (sx <= x) {
+                sx *= 10;
+            }
+            while (sy <= y) {
+                sy *= 10;
+            }
+            return (int) (-sy * x - y + sx * y + x);
+        });
+
+        if (numsArr[0] == 0) {
+            return "0";
+        }
+        StringBuilder ret = new StringBuilder();
+        for (int num : numsArr) {
+            ret.append(num);
+        }
+        return ret.toString();
+    }
+~~~
+
+
+
+#### [1116. 打印零与奇偶数](https://leetcode.cn/problems/print-zero-even-odd/)
+
+难度中等133收藏分享切换为英文接收动态反馈
+
+现有函数 `printNumber` 可以用一个整数参数调用，并输出该整数到控制台。
+
+- 例如，调用 `printNumber(7)` 将会输出 `7` 到控制台。
+
+给你类 `ZeroEvenOdd` 的一个实例，该类中有三个函数：`zero`、`even` 和 `odd` 。`ZeroEvenOdd` 的相同实例将会传递给三个不同线程：
+
+- **线程 A：**调用 `zero()` ，只输出 `0`
+- **线程 B：**调用 `even()` ，只输出偶数
+- **线程 C：**调用 `odd()` ，只输出奇数
+
+修改给出的类，以输出序列 `"010203040506..."` ，其中序列的长度必须为 `2n` 。
+
+实现 `ZeroEvenOdd` 类：
+
+- `ZeroEvenOdd(int n)` 用数字 `n` 初始化对象，表示需要输出的数。
+- `void zero(printNumber)` 调用 `printNumber` 以输出一个 0 。
+- `void even(printNumber)` 调用`printNumber` 以输出偶数。
+- `void odd(printNumber)` 调用 `printNumber` 以输出奇数。
+
+ 
+
+**示例 1：**
+
+```
+输入：n = 2
+输出："0102"
+解释：三条线程异步执行，其中一个调用 zero()，另一个线程调用 even()，最后一个线程调用odd()。正确的输出为 "0102"。
+```
+
+**示例 2：**
+
+```
+输入：n = 5
+输出："0102030405"
+```
+
+ 
+
+**提示：**
+
+- `1 <= n <= 1000`
+
+通过次数28,519
+
+提交次数53,667
+
+##### 我的解法
+
+利用$ReentrantLock$和$Condition$，针对当前输入的数值来唤醒不同的线程，注意最后的终止条件以及$0,1$这种输出结果，输出的时候要求所有线程都不能再lock中。(位于$\&$运算符的优先级低于算数运算符)。
+
+~~~java
+class ZeroEvenOdd {
+    private int n;
+    private int totalNumber;
+    private ReentrantLock lock = new ReentrantLock();
+    private Condition zeroCondition = lock.newCondition();
+    private Condition oddCondition = lock.newCondition();
+    private Condition evenCondition = lock.newCondition();
+
+    public ZeroEvenOdd(int n) {
+        this.n = n;
+    }
+
+    // printNumber.accept(x) outputs "x", where x is an integer.
+    public void zero(IntConsumer printNumber) throws InterruptedException {
+        while (totalNumber < 2 * n) {
+            lock.lock();
+            int next = totalNumber + 1;
+            if (next % 4 == 0) {
+                evenCondition.signal();
+                zeroCondition.await();
+            } else if (next % 2 == 2) {
+                oddCondition.signal();
+                zeroCondition.await();
+            } else {
+                totalNumber++;
+                printNumber.accept(0);
+                next = totalNumber + 1;
+                if (next % 4 == 0) {
+                    evenCondition.signal();
+                } else {
+                    oddCondition.signal();
+                }
+                if (totalNumber != 2 * n) {
+                    zeroCondition.await();
+                }
+            }
+            lock.unlock();
+        }
+    }
+
+    public void even(IntConsumer printNumber) throws InterruptedException {
+        while (totalNumber < 2 * n) {
+            lock.lock();
+            int next = totalNumber + 1;
+            if (next % 4 != 0) {
+                evenCondition.await();
+            }
+            if(totalNumber==2*n){
+                break;
+            }
+            totalNumber++;
+            printNumber.accept(totalNumber >> 1);
+            zeroCondition.signal();
+            if (totalNumber != 2 * n) {
+                evenCondition.await();
+            }else{
+                oddCondition.signal();
+            }
+            lock.unlock();
+        }
+    }
+
+    public void odd(IntConsumer printNumber) throws InterruptedException {
+        while (totalNumber < 2 * n) {
+            lock.lock();
+            int next = totalNumber + 1;
+            if (next % 4 == 0 || (next & 1) == 1) {
+                oddCondition.await();
+            }
+            if(totalNumber==2*n){
+                break;
+            }
+            totalNumber++;
+            printNumber.accept(totalNumber >> 1);
+            zeroCondition.signal();
+            if (totalNumber != 2 * n) {
+                oddCondition.await();
+            }else{
+                evenCondition.signal();
+            }
+            lock.unlock();
+        }
+    }
+}
+~~~
+
+
+
+##### synchronized方法
+
+~~~java
+class ZeroEvenOdd {
+    private int n;
+    private volatile int flag = 1;
+    
+    public ZeroEvenOdd(int n) {
+        this.n = n;
+    }
+
+    // printNumber.accept(x) outputs "x", where x is an integer.
+    public void zero(IntConsumer printNumber) throws InterruptedException {
+        for (int i=1; i<=n; i++) {
+            synchronized (this) {
+                while (flag % 2 == 0) wait();
+                printNumber.accept(0);
+                flag ++;
+                notifyAll();
+            }
+        }
+    }
+
+    public void even(IntConsumer printNumber) throws InterruptedException {
+        for (int i=2; i<=n; i+=2) {
+            synchronized (this) {
+                while (flag % 4 != 0) wait();
+                printNumber.accept(i);
+                flag ++;
+                notifyAll();
+            }
+        }
+    }
+
+    public void odd(IntConsumer printNumber) throws InterruptedException {
+        for (int i=1; i<=n; i+=2) {
+            synchronized(this) {
+                while (flag % 4 != 2) wait();
+                printNumber.accept(i);
+                flag ++;
+                notifyAll();
+            }
+        }
+    }
+}
+~~~
+
+
+
+#### [912. 排序数组](https://leetcode.cn/problems/sort-an-array/)
+
+难度中等611收藏分享切换为英文接收动态反馈
+
+给你一个整数数组 `nums`，请你将该数组升序排列。
+
+ 
+
+
+
+**示例 1：**
+
+```
+输入：nums = [5,2,3,1]
+输出：[1,2,3,5]
+```
+
+**示例 2：**
+
+```
+输入：nums = [5,1,1,2,0,0]
+输出：[0,0,1,1,2,5]
+```
+
+ 
+
+**提示：**
+
+- `1 <= nums.length <= 5 * 104`
+- `-5 * 104 <= nums[i] <= 5 * 104`
+
+通过次数404,991
+
+提交次数727,423
+
+###### 我的解法：混合排序
+
+根据当前数组的大小进行选择排序，如果数组数量小的话 ，直接使用比较排序；否则使用桶排序。
+
+~~~java
+  public int[] sortArray(int[] nums) {
+        if(nums.length<=1000){
+            Arrays.sort(nums);
+            return nums;
+        }
+        int posMax=5*10000;
+        int[] fill=new int[2*posMax+1];
+        for(int num:nums){
+            fill[num+posMax]++;
+        }
+        int i=0,j=0;
+        for(;i<fill.length;i++){
+            int count=fill[i];
+            if(count==0){
+                continue;
+            }
+            while(count-->0){
+                nums[j++]=i-posMax;
+            }
+        }
+        return nums;
+
+    }
+~~~
+
+
+
+##### 官方：随机快排
+
+~~~java
+ public int[] sortArray(int[] nums) {
+        randomizedQuicksort(nums, 0, nums.length - 1);
+        return nums;
+    }
+
+    public void randomizedQuicksort(int[] nums, int l, int r) {
+        if (l < r) {
+            int pos = randomizedPartition(nums, l, r);
+            randomizedQuicksort(nums, l, pos - 1);
+            randomizedQuicksort(nums, pos + 1, r);
+        }
+    }
+
+    public int randomizedPartition(int[] nums, int l, int r) {
+        int i = new Random().nextInt(r - l + 1) + l; // 随机选一个作为我们的主元
+        swap(nums, r, i);
+        return partition(nums, l, r);
+    }
+
+    public int partition(int[] nums, int l, int r) {
+        int pivot = nums[r];
+        int i = l - 1;
+        for (int j = l; j <= r - 1; ++j) {
+            if (nums[j] <= pivot) {
+                i = i + 1;
+                swap(nums, i, j);
+            }
+        }
+        swap(nums, i + 1, r);
+        return i + 1;
+    }
+
+    private void swap(int[] nums, int i, int j) {
+        int temp = nums[i];
+        nums[i] = nums[j];
+        nums[j] = temp;
+    }
+~~~
+
+
+
+#### [34. 在排序数组中查找元素的第一个和最后一个位置](https://leetcode.cn/problems/find-first-and-last-position-of-element-in-sorted-array/)
+
+难度中等1807收藏分享切换为英文接收动态反馈
+
+给你一个按照非递减顺序排列的整数数组 `nums`，和一个目标值 `target`。请你找出给定目标值在数组中的开始位置和结束位置。
+
+如果数组中不存在目标值 `target`，返回 `[-1, -1]`。
+
+你必须设计并实现时间复杂度为 `O(log n)` 的算法解决此问题。
+
+ 
+
+**示例 1：**
+
+```
+输入：nums = [5,7,7,8,8,10], target = 8
+输出：[3,4]
+```
+
+**示例 2：**
+
+```
+输入：nums = [5,7,7,8,8,10], target = 6
+输出：[-1,-1]
+```
+
+**示例 3：**
+
+```
+输入：nums = [], target = 0
+输出：[-1,-1]
+```
+
+ 
+
+**提示：**
+
+- `0 <= nums.length <= 105`
+- `-109 <= nums[i] <= 109`
+- `nums` 是一个非递减数组
+- `-109 <= target <= 109`
+
+通过次数589,578
+
+提交次数1,393,534
+
+##### 我的解法
+
+直接二分查找变形
+
+~~~java
+ int binarySearch(int [] nums,int target , int direction){
+        int pos=-1;
+        int left=0,right=nums.length-1;
+        while(left<=right){
+            int mid=(left+right)/2;
+            if(nums[mid]>target){
+                right=mid-1;
+            }else if(nums[mid]<target){
+                left=mid+1;
+            }else{
+                pos=mid;
+                if(direction==0){
+                    right=mid-1;
+                }else{
+                    left=mid+1;
+                }
+            }
+        }
+        return pos;
+    }
+    public int[] searchRange(int[] nums, int target) {
+        int leftBound=binarySearch(nums,target,0);
+        int rightBound=binarySearch(nums,target,1);
+        return new int[]{leftBound,rightBound};
+    }
+~~~
+
+
+
+#### [27. 移除元素](https://leetcode.cn/problems/remove-element/)
+
+难度简单1390收藏分享切换为英文接收动态反馈
+
+给你一个数组 `nums` 和一个值 `val`，你需要 **[原地](https://baike.baidu.com/item/原地算法)** 移除所有数值等于 `val` 的元素，并返回移除后数组的新长度。
+
+不要使用额外的数组空间，你必须仅使用 `O(1)` 额外空间并 **[原地 ](https://baike.baidu.com/item/原地算法)修改输入数组**。
+
+元素的顺序可以改变。你不需要考虑数组中超出新长度后面的元素。
+
+ 
+
+**说明:**
+
+为什么返回数值是整数，但输出的答案是数组呢?
+
+请注意，输入数组是以**「引用」**方式传递的，这意味着在函数里修改输入数组对于调用者是可见的。
+
+你可以想象内部操作如下:
+
+```
+// nums 是以“引用”方式传递的。也就是说，不对实参作任何拷贝
+int len = removeElement(nums, val);
+
+// 在函数里修改输入数组对于调用者是可见的。
+// 根据你的函数返回的长度, 它会打印出数组中 该长度范围内 的所有元素。
+for (int i = 0; i < len; i++) {
+    print(nums[i]);
+}
+```
+
+ 
+
+**示例 1：**
+
+```
+输入：nums = [3,2,2,3], val = 3
+输出：2, nums = [2,2]
+解释：函数应该返回新的长度 2, 并且 nums 中的前两个元素均为 2。你不需要考虑数组中超出新长度后面的元素。例如，函数返回的新长度为 2 ，而 nums = [2,2,3,3] 或 nums = [2,2,0,0]，也会被视作正确答案。
+```
+
+**示例 2：**
+
+```
+输入：nums = [0,1,2,2,3,0,4,2], val = 2
+输出：5, nums = [0,1,4,0,3]
+解释：函数应该返回新的长度 5, 并且 nums 中的前五个元素为 0, 1, 3, 0, 4。注意这五个元素可为任意顺序。你不需要考虑数组中超出新长度后面的元素。
+```
+
+ 
+
+**提示：**
+
+- `0 <= nums.length <= 100`
+- `0 <= nums[i] <= 50`
+- `0 <= val <= 100`
+
+通过次数759,428
+
+提交次数1,276,758
+
+##### 快排数值替换
+
+类似于快排中的数值替换，使用双指针，一个表示当前遍历的索引，一个表示不是目标值的索引。
+
+~~~java
+ void swapInt(int[] nums,int i,int j){
+        int tmp=nums[i];
+        nums[i]=nums[j];
+        nums[j]=tmp;
+    }
+    public int removeElement(int[] nums, int val) {
+        int i=0,j=-1;
+        int len=nums.length;
+        for(;i<len;i++){
+            if(nums[i]!=val){
+                j++;
+                swapInt(nums,i,j);
+            }
+        }
+        return j+1;
+    }
+~~~
+
+
+
+##### 官方解法
+
+注意$right-1$才是空出来的位置
+
+~~~java
+ public int removeElement(int[] nums, int val) {
+        int left = 0;
+        int right = nums.length;
+        while (left < right) {
+            if (nums[left] == val) {
+                nums[left] = nums[right - 1];
+                right--;
+            } else {
+                left++;
+            }
+        }
+        return left;
+    }
+~~~
+
+
+
+#### [31. 下一个排列](https://leetcode.cn/problems/next-permutation/)
+
+难度中等1820收藏分享切换为英文接收动态反馈
+
+整数数组的一个 **排列** 就是将其所有成员以序列或线性顺序排列。
+
+- 例如，`arr = [1,2,3]` ，以下这些都可以视作 `arr` 的排列：`[1,2,3]`、`[1,3,2]`、`[3,1,2]`、`[2,3,1]` 。
+
+整数数组的 **下一个排列** 是指其整数的下一个字典序更大的排列。更正式地，如果数组的所有排列根据其字典顺序从小到大排列在一个容器中，那么数组的 **下一个排列** 就是在这个有序容器中排在它后面的那个排列。如果不存在下一个更大的排列，那么这个数组必须重排为字典序最小的排列（即，其元素按升序排列）。
+
+- 例如，`arr = [1,2,3]` 的下一个排列是 `[1,3,2]` 。
+- 类似地，`arr = [2,3,1]` 的下一个排列是 `[3,1,2]` 。
+- 而 `arr = [3,2,1]` 的下一个排列是 `[1,2,3]` ，因为 `[3,2,1]` 不存在一个字典序更大的排列。
+
+给你一个整数数组 `nums` ，找出 `nums` 的下一个排列。
+
+必须**[ 原地 ](https://baike.baidu.com/item/原地算法)**修改，只允许使用额外常数空间。
+
+ 
+
+**示例 1：**
+
+```
+输入：nums = [1,2,3]
+输出：[1,3,2]
+```
+
+**示例 2：**
+
+```
+输入：nums = [3,2,1]
+输出：[1,2,3]
+```
+
+**示例 3：**
+
+```
+输入：nums = [1,1,5]
+输出：[1,5,1]
+```
+
+ 
+
+**提示：**
+
+- `1 <= nums.length <= 100`
+- `0 <= nums[i] <= 100`
+
+通过次数334,662
+
+提交次数885,068
+
+##### 我的解法
+
+题目开始时候没有思路，看解析才有想法。从数值的角度出来，要想找到下一个序列，就是找一个数值：
+
+- 数值位增加的位尽量在右边，这样，能够最小程度的增大
+- 这个增加的数值位的值要尽可能比原先大一点
+
+比如对于数值$436521$来说，从右向左出发找到一个下降的序列对$36$，下一次要增加的序列为就是$3$，用什么值来替换它，用比它大并且尽可能小的数，由于$3$后面是一个递减（包含相等）$6521$序列，所以查找到该路径下比它大的第一个值$5$，然后替换，替换后位置$3$之后的序列是$6321$，还要进行反转。
+
+~~~java
+void revert(int[] nums,int left,int right){
+        int limit=(right-left+1)/2+left;
+        for(int i=left;i<limit;i++){
+            int tmp=nums[i];
+            nums[i]=nums[right+left-i];
+            nums[right+left-i]=tmp;
+        }
+    }
+    public void nextPermutation(int[] nums) {
+        //从右向左找到相邻的降序的序列组
+        int i,j;
+        boolean found=false;
+        for(i=nums.length-1;i>0;i--){
+            if(nums[i-1]<nums[i]){
+                found=true;
+                break;
+            }
+        }
+        //当前已经是最大序列，直接反转数组
+        if(!found){
+            revert(nums,0,nums.length-1);
+            return;
+        }
+        //从右向左找到比nums[i-1]第一个大的数，然后交换
+        j=nums.length-1;
+        while(nums[j]<=nums[i-1]){
+            j--;
+        }
+        //交换
+        int tmp=nums[j];
+        nums[j]=nums[i-1];
+        nums[i-1]=tmp;
+        //排序i到length-1,此时顺序是递增的，只需反转即可
+        revert(nums,i,nums.length-1);
+    }
+~~~
+
+
+
+##### 官方答案
+
+~~~java
+ public void nextPermutation(int[] nums) {
+        int i = nums.length - 2;
+        while (i >= 0 && nums[i] >= nums[i + 1]) {
+            i--;
+        }
+        if (i >= 0) {
+            int j = nums.length - 1;
+            while (j >= 0 && nums[i] >= nums[j]) {
+                j--;
+            }
+            swap(nums, i, j);
+        }
+        reverse(nums, i + 1);
+    }
+
+    public void swap(int[] nums, int i, int j) {
+        int temp = nums[i];
+        nums[i] = nums[j];
+        nums[j] = temp;
+    }
+
+    public void reverse(int[] nums, int start) {
+        int left = start, right = nums.length - 1;
+        while (left < right) {
+            swap(nums, left, right);
+            left++;
+            right--;
+        }
+    }
+~~~
 
