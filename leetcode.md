@@ -17393,3 +17393,6157 @@ void revert(int[] nums,int left,int right){
     }
 ~~~
 
+
+
+#### [239. 滑动窗口最大值](https://leetcode.cn/problems/sliding-window-maximum/)
+
+难度困难1753收藏分享切换为英文接收动态反馈
+
+给你一个整数数组 `nums`，有一个大小为 `k` 的滑动窗口从数组的最左侧移动到数组的最右侧。你只可以看到在滑动窗口内的 `k` 个数字。滑动窗口每次只向右移动一位。
+
+返回 *滑动窗口中的最大值* 。
+
+ 
+
+**示例 1：**
+
+```
+输入：nums = [1,3,-1,-3,5,3,6,7], k = 3
+输出：[3,3,5,5,6,7]
+解释：
+滑动窗口的位置                最大值
+---------------               -----
+[1  3  -1] -3  5  3  6  7       3
+ 1 [3  -1  -3] 5  3  6  7       3
+ 1  3 [-1  -3  5] 3  6  7       5
+ 1  3  -1 [-3  5  3] 6  7       5
+ 1  3  -1  -3 [5  3  6] 7       6
+ 1  3  -1  -3  5 [3  6  7]      7
+```
+
+**示例 2：**
+
+```
+输入：nums = [1], k = 1
+输出：[1]
+```
+
+ 
+
+**提示：**
+
+- `1 <= nums.length <= 105`
+- `-104 <= nums[i] <= 104`
+- `1 <= k <= nums.length`
+
+通过次数325,863
+
+提交次数652,002
+
+##### 方法一：堆排序
+
+堆中维护的是一个滑动窗口大小左右的数值以及对应的位置，窗口移动的时候，每次获取当前堆中的最大值，比较当前值是否还在滑动窗口内，如果不在那么移除。
+
+~~~java
+/**
+     * 基本思路：要获取滑动窗口的最大值，自然想到堆求解，考虑到随着滑动窗口的更新，如果
+     * 堆中的数据不在当前窗口内，那么应该删除。堆内容存储的是当前数值和其位置，每次获取
+     * 堆顶部数值，如果不在当前窗口内，删除即可
+     */
+    public int[] maxSlidingWindow(int[] nums, int k) {
+        //两个数值数组，位置0表示数值，位置1表示索引值
+        Comparator<int[]> bigComparator=(n1,n2)->n2[0]-n1[0];
+        int[] ans=new int[nums.length-k+1];
+        int j=0;
+        PriorityQueue<int[]> queue=new PriorityQueue(bigComparator);
+        for(int i=0;i<nums.length;i++){
+            int[] wrapNum=new int[]{nums[i],i};
+            queue.offer(wrapNum);
+            //删除过期的数值
+            if(queue.size()>k){
+                int leftBound=i-k+1;
+                while(!queue.isEmpty()){
+                    int[] top=queue.peek();
+                    if(top[1]<leftBound){
+                        queue.poll();
+                    }else{
+                        break;
+                    }
+                }
+            }
+            if(i>=k-1){
+                ans[j++]=queue.peek()[0];
+            }
+        }
+        return ans;
+    }
+~~~
+
+
+
+##### 官方题解：优先队列
+
+~~~java
+ public int[] maxSlidingWindow(int[] nums, int k) {
+        int n = nums.length;
+        PriorityQueue<int[]> pq = new PriorityQueue<int[]>(new Comparator<int[]>() {
+            public int compare(int[] pair1, int[] pair2) {
+                return pair1[0] != pair2[0] ? pair2[0] - pair1[0] : pair2[1] - pair1[1];
+            }
+        });
+        for (int i = 0; i < k; ++i) {
+            pq.offer(new int[]{nums[i], i});
+        }
+        int[] ans = new int[n - k + 1];
+        ans[0] = pq.peek()[0];
+        for (int i = k; i < n; ++i) {
+            pq.offer(new int[]{nums[i], i});
+            while (pq.peek()[1] <= i - k) {
+                pq.poll();
+            }
+            ans[i - k + 1] = pq.peek()[0];
+        }
+        return ans;
+    }
+
+~~~
+
+
+
+##### 官方题解2：单调队列
+
+对于滑动窗口中的任意两个下标$i$和$j$($i<j$)，只要满足$nums[i]\leq nums[j]$,那么滑动中的最大值就不会是$nums[i]$。根据此思路，可以维护一个严格递减的单调栈（使用队列实现，因为需要获取当前栈中的最大值，即第一个数值），顺序比较当前值和栈顶值，如果当前值大于或者等于栈顶值，那么出栈，当前值入栈。
+
+~~~java
+ public int[] maxSlidingWindow(int[] nums, int k) {
+        int n = nums.length;
+        Deque<Integer> deque = new LinkedList<Integer>();
+        for (int i = 0; i < k; ++i) {
+            while (!deque.isEmpty() && nums[i] >= nums[deque.peekLast()]) {
+                deque.pollLast();
+            }
+            deque.offerLast(i);
+        }
+
+        int[] ans = new int[n - k + 1];
+        ans[0] = nums[deque.peekFirst()];
+        for (int i = k; i < n; ++i) {
+            while (!deque.isEmpty() && nums[i] >= nums[deque.peekLast()]) {
+                deque.pollLast();
+            }
+            deque.offerLast(i);
+            while (deque.peekFirst() <= i - k) {
+                deque.pollFirst();
+            }
+            ans[i - k + 1] = nums[deque.peekFirst()];
+        }
+        return ans;
+    }
+~~~
+
+
+
+#### [42. 接雨水](https://leetcode.cn/problems/trapping-rain-water/)
+
+难度困难3634收藏分享切换为英文接收动态反馈
+
+给定 `n` 个非负整数表示每个宽度为 `1` 的柱子的高度图，计算按此排列的柱子，下雨之后能接多少雨水。
+
+ 
+
+**示例 1：**
+
+![img](https://assets.leetcode-cn.com/aliyun-lc-upload/uploads/2018/10/22/rainwatertrap.png)
+
+```
+输入：height = [0,1,0,2,1,0,1,3,2,1,2,1]
+输出：6
+解释：上面是由数组 [0,1,0,2,1,0,1,3,2,1,2,1] 表示的高度图，在这种情况下，可以接 6 个单位的雨水（蓝色部分表示雨水）。 
+```
+
+**示例 2：**
+
+```
+输入：height = [4,2,0,3,2,5]
+输出：9
+```
+
+ 
+
+**提示：**
+
+- `n == height.length`
+- `1 <= n <= 2 * 104`
+- `0 <= height[i] <= 105`
+
+通过次数531,237
+
+提交次数862,692
+
+##### 我的解法：更新边界
+
+计算以当前柱子高度能够存放的雨水，就是从当前柱子下标开始向左和向右移动找到最大的值。
+
+~~~java
+/**
+     * 接多少雨水的条件是：以当前柱子i为准，向左、右边界不断扩展，找到左右边界的最大值，积累的雨水数量就是
+     * 差值
+     */
+    public int trap(int[] height) {
+        int[] leftMax=new int[height.length];
+        int[] rightMax=new int[height.length];
+        //计算左边界
+        int i,max=height[0];
+        for(i=0;i<height.length;i++){
+            max=Math.max(height[i],max);
+            leftMax[i]=max;
+        }
+        //计算右边界
+        i=height.length-1;
+        max=height[i];
+        while(i>=0){
+            max=Math.max(max,height[i]);
+            rightMax[i]=max;
+            i--;
+        }
+        //计算雨水
+        int sum=0;
+        for(i=0;i<height.length;i++){
+            sum+=Math.min(leftMax[i],rightMax[i])-height[i];
+        }
+        return sum;
+    }
+~~~
+
+
+
+##### 官方题解：单调栈
+
+除了计算并存储每个位置两边的最大高度以外，也可以用单调栈计算能接的雨水总量。
+
+维护一个单调栈，单调栈存储的是下标，满足从栈底到栈顶的下标对应的数组 $height$ 中的元素递减。
+
+从左到右遍历数组，遍历到下标 ii 时，如果栈内至少有两个元素，记栈顶元素为 $top$ 的下面一个元素是 $left$，则一定有 
+
+$height[top] \leq height[left] $。如果 $height[i] \geq heigth[top]$，则得到一个可以接雨水的区域，该区域的宽度是 $i-left-1$，高度是 $min(height[left],height[i])-height[top]$，根据宽度和高度即可计算得到该区域能接的雨水量，**注意这个积水区域值得是高度值。**
+
+~~~java
+public int trap(int[] height) {
+        int ans = 0;
+        Deque<Integer> stack = new LinkedList<Integer>();
+        int n = height.length;
+        for (int i = 0; i < n; ++i) {
+            while (!stack.isEmpty() && height[i] > height[stack.peek()]) {
+                int top = stack.pop();
+                if (stack.isEmpty()) {
+                    break;
+                }
+                int left = stack.peek();
+                int currWidth = i - left - 1;
+                int currHeight = Math.min(height[left], height[i]) - height[top];
+                ans += currWidth * currHeight;
+            }
+            stack.push(i);
+        }
+        return ans;
+    }
+
+~~~
+
+
+
+##### 官方解答：双指针
+
+~~~java
+ public int trap(int[] height) {
+        int ans = 0;
+        int left = 0, right = height.length - 1;
+        int leftMax = 0, rightMax = 0;
+        while (left < right) {
+            leftMax = Math.max(leftMax, height[left]);
+            rightMax = Math.max(rightMax, height[right]);
+            if (height[left] < height[right]) {
+                ans += leftMax - height[left];
+                ++left;
+            } else {
+                ans += rightMax - height[right];
+                --right;
+            }
+        }
+        return ans;
+    }
+
+~~~
+
+
+
+#### [39. 组合总和](https://leetcode.cn/problems/combination-sum/)
+
+难度中等2075收藏分享切换为英文接收动态反馈
+
+给你一个 **无重复元素** 的整数数组 `candidates` 和一个目标整数 `target` ，找出 `candidates` 中可以使数字和为目标数 `target` 的 *所有* **不同组合** ，并以列表形式返回。你可以按 **任意顺序** 返回这些组合。
+
+`candidates` 中的 **同一个** 数字可以 **无限制重复被选取** 。如果至少一个数字的被选数量不同，则两种组合是不同的。 
+
+对于给定的输入，保证和为 `target` 的不同组合数少于 `150` 个。
+
+ 
+
+**示例 1：**
+
+```
+输入：candidates = [2,3,6,7], target = 7
+输出：[[2,2,3],[7]]
+解释：
+2 和 3 可以形成一组候选，2 + 2 + 3 = 7 。注意 2 可以使用多次。
+7 也是一个候选， 7 = 7 。
+仅有这两种组合。
+```
+
+**示例 2：**
+
+```
+输入: candidates = [2,3,5], target = 8
+输出: [[2,2,2,2],[2,3,3],[3,5]]
+```
+
+**示例 3：**
+
+```
+输入: candidates = [2], target = 1
+输出: []
+```
+
+ 
+
+**提示：**
+
+- `1 <= candidates.length <= 30`
+- `1 <= candidates[i] <= 200`
+- `candidate` 中的每个元素都 **互不相同**
+- `1 <= target <= 500`
+
+通过次数557,420
+
+提交次数766,786
+
+
+
+##### 回溯和基本剪枝
+
+~~~java
+List<List<Integer>> ans=new ArrayList();
+    void dfs(int[] candidates,int target,int index,ArrayList<Integer> result){
+        if(target==0){
+            ans.add(new ArrayList(result));
+            return;
+        }
+        if(index==candidates.length||target<candidates[index]){
+            return;
+        }
+        //minus
+        result.add(candidates[index]);
+        dfs(candidates,target-candidates[index],index,result);
+        result.remove(result.size()-1);
+         //skip current
+        dfs(candidates,target,index+1,result);
+
+    }
+    public List<List<Integer>> combinationSum(int[] candidates, int target) {
+        Arrays.sort(candidates);
+        dfs(candidates,target,0,new ArrayList());
+        return ans;
+    }
+}
+~~~
+
+
+
+##### 官方解答
+
+~~~java
+public List<List<Integer>> combinationSum(int[] candidates, int target) {
+        List<List<Integer>> ans = new ArrayList<List<Integer>>();
+        List<Integer> combine = new ArrayList<Integer>();
+        dfs(candidates, target, ans, combine, 0);
+        return ans;
+    }
+
+    public void dfs(int[] candidates, int target, List<List<Integer>> ans, List<Integer> combine, int idx) {
+        if (idx == candidates.length) {
+            return;
+        }
+        if (target == 0) {
+            ans.add(new ArrayList<Integer>(combine));
+            return;
+        }
+        // 直接跳过
+        dfs(candidates, target, ans, combine, idx + 1);
+        // 选择当前数
+        if (target - candidates[idx] >= 0) {
+            combine.add(candidates[idx]);
+            dfs(candidates, target - candidates[idx], ans, combine, idx);
+            combine.remove(combine.size() - 1);
+        }
+    }
+
+~~~
+
+
+
+#### [350. 两个数组的交集 II](https://leetcode.cn/problems/intersection-of-two-arrays-ii/)
+
+难度简单800收藏分享切换为英文接收动态反馈
+
+给你两个整数数组 `nums1` 和 `nums2` ，请你以数组形式返回两数组的交集。返回结果中每个元素出现的次数，应与元素在两个数组中都出现的次数一致（如果出现次数不一致，则考虑取较小值）。可以不考虑输出结果的顺序。
+
+ 
+
+**示例 1：**
+
+```
+输入：nums1 = [1,2,2,1], nums2 = [2,2]
+输出：[2,2]
+```
+
+**示例 2:**
+
+```
+输入：nums1 = [4,9,5], nums2 = [9,4,9,8,4]
+输出：[4,9]
+```
+
+ 
+
+**提示：**
+
+- `1 <= nums1.length, nums2.length <= 1000`
+- `0 <= nums1[i], nums2[i] <= 1000`
+
+ 
+
+***\*进阶\**：**
+
+- 如果给定的数组已经排好序呢？你将如何优化你的算法？
+- 如果 `nums1` 的大小比 `nums2` 小，哪种方法更优？
+- 如果 `nums2` 的元素存储在磁盘上，内存是有限的，并且你不能一次加载所有的元素到内存中，你该怎么办？
+
+通过次数381,480
+
+提交次数676,387
+
+
+
+##### 排序比较
+
+~~~java
+ public int[] intersect(int[] nums1, int[] nums2) {
+        Arrays.sort(nums1);
+        Arrays.sort(nums2);
+        int i=0,j=0;
+        List<Integer> ans=new ArrayList();
+        while(i<nums1.length&&j<nums2.length){
+            if(nums1[i]<nums2[j]){
+                i++;
+                continue;
+            }else if(nums1[i]>nums2[j]){
+                j++;
+                continue;
+            }
+            ans.add(nums1[i]);
+            i++;
+            j++;
+        }
+        return ans.stream().mapToInt(Integer::intValue).toArray();
+    }
+~~~
+
+
+
+##### 官方解答: map映射
+
+**直接借鉴一点是数组交换**
+
+~~~
+ public int[] intersect(int[] nums1, int[] nums2) {
+        if (nums1.length > nums2.length) {
+            return intersect(nums2, nums1);
+        }
+        Map<Integer, Integer> map = new HashMap<Integer, Integer>();
+        for (int num : nums1) {
+            int count = map.getOrDefault(num, 0) + 1;
+            map.put(num, count);
+        }
+        int[] intersection = new int[nums1.length];
+        int index = 0;
+        for (int num : nums2) {
+            int count = map.getOrDefault(num, 0);
+            if (count > 0) {
+                intersection[index++] = num;
+                count--;
+                if (count > 0) {
+                    map.put(num, count);
+                } else {
+                    map.remove(num);
+                }
+            }
+        }
+        return Arrays.copyOfRange(intersection, 0, index);
+    }
+
+~~~
+
+
+
+#### [81. 搜索旋转排序数组 II](https://leetcode.cn/problems/search-in-rotated-sorted-array-ii/)
+
+难度中等624收藏分享切换为英文接收动态反馈
+
+已知存在一个按非降序排列的整数数组 `nums` ，数组中的值不必互不相同。
+
+在传递给函数之前，`nums` 在预先未知的某个下标 `k`（`0 <= k < nums.length`）上进行了 **旋转** ，使数组变为 `[nums[k], nums[k+1], ..., nums[n-1], nums[0], nums[1], ..., nums[k-1]]`（下标 **从 0 开始** 计数）。例如， `[0,1,2,4,4,4,5,6,6,7]` 在下标 `5` 处经旋转后可能变为 `[4,5,6,6,7,0,1,2,4,4]` 。
+
+给你 **旋转后** 的数组 `nums` 和一个整数 `target` ，请你编写一个函数来判断给定的目标值是否存在于数组中。如果 `nums` 中存在这个目标值 `target` ，则返回 `true` ，否则返回 `false` 。
+
+你必须尽可能减少整个操作步骤。
+
+ 
+
+**示例 1：**
+
+```
+输入：nums = [2,5,6,0,0,1,2], target = 0
+输出：true
+```
+
+**示例 2：**
+
+```
+输入：nums = [2,5,6,0,0,1,2], target = 3
+输出：false
+```
+
+ 
+
+**提示：**
+
+- `1 <= nums.length <= 5000`
+- `-104 <= nums[i] <= 104`
+- 题目数据保证 `nums` 在预先未知的某个下标上进行了旋转
+- `-104 <= target <= 104`
+
+ 
+
+**进阶：**
+
+- 这是 [搜索旋转排序数组](https://leetcode-cn.com/problems/search-in-rotated-sorted-array/description/) 的延伸题目，本题中的 `nums` 可能包含重复元素。
+- 这会影响到程序的时间复杂度吗？会有怎样的影响，为什么？
+
+ 
+
+通过次数167,150
+
+提交次数405,134
+
+##### 二分搜索
+
+~~~java
+ int binarySearchIndex(int[] nums,int low,int high,int target){
+        while(low<=high){
+            int mid=(low+high)/2;
+            if(nums[mid]==target){
+                return mid;
+            }else if(nums[mid]>target){
+                high=mid-1;
+            }else{
+                low=mid+1;
+            }
+        }
+        return -1;
+    }
+    boolean binarySearch(int[] nums,int target,int left,int right){
+        if(left==right){
+            return nums[left]==target;
+        }
+        int mid=(left+right)/2;
+        if(nums[left]<nums[mid]){
+            int index=binarySearchIndex(nums,left,mid,target);
+            if(index!=-1){
+                return true;
+            }
+        }
+        if(nums[mid]<nums[right]){
+            int index=binarySearchIndex(nums,mid,right,target);
+            if(index!=-1){
+                return true;
+            }
+        }
+        if(binarySearch(nums,target,left,mid)){
+            return true;
+        }
+        return binarySearch(nums,target,mid+1,right);
+    }
+    public boolean search(int[] nums, int target) {
+        return binarySearch(nums,target,0,nums.length-1);
+    }
+~~~
+
+
+
+
+
+#### [128. 最长连续序列](https://leetcode.cn/problems/longest-consecutive-sequence/)
+
+难度中等1332收藏分享切换为英文接收动态反馈
+
+给定一个未排序的整数数组 `nums` ，找出数字连续的最长序列（不要求序列元素在原数组中连续）的长度。
+
+请你设计并实现时间复杂度为 `O(n)` 的算法解决此问题。
+
+ 
+
+**示例 1：**
+
+```
+输入：nums = [100,4,200,1,3,2]
+输出：4
+解释：最长数字连续序列是 [1, 2, 3, 4]。它的长度为 4。
+```
+
+**示例 2：**
+
+```
+输入：nums = [0,3,7,2,5,8,4,6,0,1]
+输出：9
+```
+
+ 
+
+**提示：**
+
+- `0 <= nums.length <= 105`
+- `-109 <= nums[i] <= 109`
+
+通过次数293,876
+
+提交次数533,693
+
+
+
+##### 上下遍历
+
+~~~java
+ public int longestConsecutive(int[] nums) {
+       //通过map来实现，指定一个位置向两边扩展
+       int ans=0;
+       int tmpAns=0;
+       Map<Integer,Boolean> visitMap=Arrays.stream(nums).boxed().collect(Collectors.toMap(Function.identity(),k->Boolean.FALSE,(v1,v2)->v1));
+       for(int num:nums){
+           Boolean visited=visitMap.get(num);
+           if(visited){
+               continue;
+           }
+           tmpAns=1;
+           //想下扩展
+           int bench=num;
+           while(visitMap.containsKey(--bench)){
+               tmpAns++;
+               visitMap.put(bench,Boolean.TRUE);
+           }
+           //想上扩展
+           bench=num;
+           while(visitMap.containsKey(++bench)){
+               tmpAns++;
+               visitMap.put(bench,Boolean.TRUE);
+           }
+           ans=Math.max(ans,tmpAns);
+       }
+       return ans;
+    }
+~~~
+
+
+
+##### 优化方法
+
+~~~java
+public static int longestConsecutive(int[] nums) {
+        if (nums == null || nums.length == 0) {
+            return 0;
+        }
+
+        if (nums.length == 1) {
+            return 1;
+        }
+
+        Set<Integer> map = new HashSet<>(nums.length);
+        for (int x : nums) {
+            map.add(x);
+        }
+
+        int maxLength = 0;
+        while (!map.isEmpty()) {
+            // 取map的第一个值
+            int x = map.iterator().next();
+            map.remove(x);
+
+            int length = 1;
+
+            int tmp = x;
+            while (map.remove(--tmp)) {
+                length += 1;
+            }
+
+            tmp = x;
+            while (map.remove(++tmp)) {
+                length += 1;
+            }
+
+            if (length > maxLength) {
+                maxLength = length;
+            }
+        }
+
+        return maxLength;
+    }
+~~~
+
+
+
+#### [36. 有效的数独](https://leetcode.cn/problems/valid-sudoku/)
+
+难度中等923收藏分享切换为英文接收动态反馈
+
+请你判断一个 `9 x 9` 的数独是否有效。只需要 **根据以下规则** ，验证已经填入的数字是否有效即可。
+
+1. 数字 `1-9` 在每一行只能出现一次。
+2. 数字 `1-9` 在每一列只能出现一次。
+3. 数字 `1-9` 在每一个以粗实线分隔的 `3x3` 宫内只能出现一次。（请参考示例图）
+
+ 
+
+**注意：**
+
+- 一个有效的数独（部分已被填充）不一定是可解的。
+- 只需要根据以上规则，验证已经填入的数字是否有效即可。
+- 空白格用 `'.'` 表示。
+
+ 
+
+**示例 1：**
+
+![img](https://assets.leetcode-cn.com/aliyun-lc-upload/uploads/2021/04/12/250px-sudoku-by-l2g-20050714svg.png)
+
+```
+输入：board = 
+[["5","3",".",".","7",".",".",".","."]
+,["6",".",".","1","9","5",".",".","."]
+,[".","9","8",".",".",".",".","6","."]
+,["8",".",".",".","6",".",".",".","3"]
+,["4",".",".","8",".","3",".",".","1"]
+,["7",".",".",".","2",".",".",".","6"]
+,[".","6",".",".",".",".","2","8","."]
+,[".",".",".","4","1","9",".",".","5"]
+,[".",".",".",".","8",".",".","7","9"]]
+输出：true
+```
+
+**示例 2：**
+
+```
+输入：board = 
+[["8","3",".",".","7",".",".",".","."]
+,["6",".",".","1","9","5",".",".","."]
+,[".","9","8",".",".",".",".","6","."]
+,["8",".",".",".","6",".",".",".","3"]
+,["4",".",".","8",".","3",".",".","1"]
+,["7",".",".",".","2",".",".",".","6"]
+,[".","6",".",".",".",".","2","8","."]
+,[".",".",".","4","1","9",".",".","5"]
+,[".",".",".",".","8",".",".","7","9"]]
+输出：false
+解释：除了第一行的第一个数字从 5 改为 8 以外，空格内其他数字均与 示例1 相同。 但由于位于左上角的 3x3 宫内有两个 8 存在, 因此这个数独是无效的。
+```
+
+ 
+
+**提示：**
+
+- `board.length == 9`
+- `board[i].length == 9`
+- `board[i][j]` 是一位数字（`1-9`）或者 `'.'`
+
+通过次数302,399
+
+提交次数476,759
+
+
+
+##### 常规遍历
+
+注意处理块之间的遍历方法
+
+~~~java
+public boolean isValidSudoku(char[][] board) {
+        //校验行
+        int m=9,n=9;
+        int i,j;
+        for(i=0;i<m;i++){
+            int[] flag=new int[n];
+            for(j=0;j<n;j++){
+                char ch=board[i][j];
+                if(ch=='.'){
+                    continue;
+                }
+                flag[ch-'1']+=1;
+                if(flag[ch-'1']>1){
+                    return false;
+                }
+            }
+        }
+        //检验列
+        for(j=0;j<n;j++){
+            int[] flag=new int[m];
+            for(i=0;i<m;i++){
+                char ch=board[i][j];
+                if(ch=='.'){
+                    continue;
+                }
+                flag[ch-'1']+=1;
+                if(flag[ch-'1']>1){
+                    return false;
+                }
+            }
+        }
+        //对角
+        i=0;
+        j=0;
+        while(i<m&&j<n){
+            int x=i,y=j;
+            int[] flag=new int[m];
+            for(;x<i+3;x++){
+                for(y=j;y<j+3;y++){
+                    char ch=board[x][y];
+                    if(ch=='.'){
+                        continue;
+                    }
+                    flag[ch-'1']+=1;
+                    if(flag[ch-'1']>1){
+                        return false;
+                    }
+                }
+            }
+            if(y<n-1){
+                j+=3;
+            }else{
+                i+=3;
+                j=0;
+            }
+        }
+        return true;
+    }
+~~~
+
+
+
+
+
+#### [48. 旋转图像](https://leetcode.cn/problems/rotate-image/)
+
+难度中等1369收藏分享切换为英文接收动态反馈
+
+给定一个 *n* × *n* 的二维矩阵 `matrix` 表示一个图像。请你将图像顺时针旋转 90 度。
+
+你必须在**[ 原地](https://baike.baidu.com/item/原地算法)** 旋转图像，这意味着你需要直接修改输入的二维矩阵。**请不要** 使用另一个矩阵来旋转图像。
+
+ 
+
+**示例 1：**
+
+![img](https://assets.leetcode.com/uploads/2020/08/28/mat1.jpg)
+
+```
+输入：matrix = [[1,2,3],[4,5,6],[7,8,9]]
+输出：[[7,4,1],[8,5,2],[9,6,3]]
+```
+
+**示例 2：**
+
+![img](https://assets.leetcode.com/uploads/2020/08/28/mat2.jpg)
+
+```
+输入：matrix = [[5,1,9,11],[2,4,8,10],[13,3,6,7],[15,14,12,16]]
+输出：[[15,13,2,5],[14,3,4,1],[12,6,8,9],[16,7,10,11]]
+```
+
+ 
+
+**提示：**
+
+- `n == matrix.length == matrix[i].length`
+- `1 <= n <= 20`
+- `-1000 <= matrix[i][j] <= 1000`
+
+ 
+
+通过次数352,927
+
+提交次数475,004
+
+##### 使用额外数组
+
+对于数组元素$matrix[i][j]$旋转90度之后对应的位置是$matrix[n-1-i][j]$
+
+~~~java
+ public void rotate(int[][] matrix) {
+        int m=matrix.length,n=matrix[0].length;
+        int[][] help=new int[m][n];
+        int i,j;
+        for(i=0;i<m;i++){
+            for(j=0;j<n;j++){
+                help[j][n-1-i]=matrix[i][j];
+            }
+        }
+        for(i=0;i<m;i++){
+            for(j=0;j<n;j++){
+                matrix[i][j]=help[i][j];
+            }
+        }
+    }
+~~~
+
+
+
+##### 官方解答：水平反转+主对角线反转
+
+~~~java
+ public void rotate(int[][] matrix) {
+        int n = matrix.length;
+        // 水平翻转
+        for (int i = 0; i < n / 2; ++i) {
+            for (int j = 0; j < n; ++j) {
+                int temp = matrix[i][j];
+                matrix[i][j] = matrix[n - i - 1][j];
+                matrix[n - i - 1][j] = temp;
+            }
+        }
+        // 主对角线翻转
+        for (int i = 0; i < n; ++i) {
+            for (int j = 0; j < i; ++j) {
+                int temp = matrix[i][j];
+                matrix[i][j] = matrix[j][i];
+                matrix[j][i] = temp;
+            }
+        }
+    }
+
+~~~
+
+
+
+#### [263. 丑数](https://leetcode.cn/problems/ugly-number/)
+
+难度简单334收藏分享切换为英文接收动态反馈
+
+**丑数** 就是只包含质因数 `2`、`3` 和 `5` 的正整数。
+
+给你一个整数 `n` ，请你判断 `n` 是否为 **丑数** 。如果是，返回 `true` ；否则，返回 `false` 。
+
+ 
+
+**示例 1：**
+
+```
+输入：n = 6
+输出：true
+解释：6 = 2 × 3
+```
+
+**示例 2：**
+
+```
+输入：n = 1
+输出：true
+解释：1 没有质因数，因此它的全部质因数是 {2, 3, 5} 的空集。习惯上将其视作第一个丑数。
+```
+
+**示例 3：**
+
+```
+输入：n = 14
+输出：false
+解释：14 不是丑数，因为它包含了另外一个质因数 7 。
+```
+
+ 
+
+**提示：**
+
+- `-231 <= n <= 231 - 1`
+
+通过次数131,017
+
+提交次数256,269
+
+##### 直接解答
+
+~~~java
+ public boolean isUgly(int n) {
+        if(n<=0){
+            return false;
+        }
+        while(n!=1){
+            if(n%2==0){
+                n/=2;
+            }else if(n%3==0){
+                n/=3;
+            }else if(n%5==0){
+                n/=5;
+            }else{
+                return false;
+            }
+        }
+        return true;
+    }
+~~~
+
+
+
+#### [84. 柱状图中最大的矩形](https://leetcode.cn/problems/largest-rectangle-in-histogram/)
+
+难度困难2066收藏分享切换为英文接收动态反馈
+
+给定 *n* 个非负整数，用来表示柱状图中各个柱子的高度。每个柱子彼此相邻，且宽度为 1 。
+
+求在该柱状图中，能够勾勒出来的矩形的最大面积。
+
+ 
+
+**示例 1:**
+
+![img](https://assets.leetcode.com/uploads/2021/01/04/histogram.jpg)
+
+```
+输入：heights = [2,1,5,6,2,3]
+输出：10
+解释：最大的矩形为图中红色区域，面积为 10
+```
+
+**示例 2：**
+
+![img](https://assets.leetcode.com/uploads/2021/01/04/histogram-1.jpg)
+
+```
+输入： heights = [2,4]
+输出： 4
+```
+
+ 
+
+**提示：**
+
+- `1 <= heights.length <=105`
+- `0 <= heights[i] <= 104`
+
+通过次数270,627
+
+提交次数608,669
+
+##### 单调栈
+
+以柱状所在高度作为矩形的高度，不断向左右两边扩展，找到左右两边首个低于当前高度的柱子，这个柱子就是边界。本质上就是
+
+找到左右两边第一个低于当前高度的柱状，作为矩形的边界（不包含），然后求解。对于任意两个高度下标$i,j(i \lt j)$，如果$height[i] \ge height[j]$，那么对于下标$k(k \lt j)$，$k$的左边界不可能是$height[i]$，由此我们想到维护一个单调递增的栈，下面代码对于右边界做了优化处理。**注意右边界需要初始化**
+
+~~~java
+ public int largestRectangleArea(int[] heights) {
+        //基于单调栈的实现思路，以当前数组元素所在高度作为矩阵的高度，然后向
+        //左右不断扩展边界
+        int[] left=new int[heights.length];
+        int[] right=new int[heights.length];
+     	//注意右边界需要初始化
+        Arrays.fill(right,heights.length);
+        int[] stack=new int[heights.length];
+        int top=-1;
+        //计算左边界、右边界
+        int i;
+        int maxArea=0;
+        for(i=0;i<heights.length;i++){
+            while(top!=-1&&heights[stack[top]]>=heights[i]){
+                //right[i]不一定是i的准确右边界，但是不影响最终的计算结果，严格右边界
+                //是值低于当前高度，但是对于等于条件，最后一个的计算结果就是
+                right[stack[top]]=i;
+                top--;
+            }
+            left[i]=top==-1?-1:stack[top];
+            stack[++top]=i;
+        }
+        for(i=0;i<heights.length;i++){
+            maxArea=Math.max(maxArea,heights[i]*(right[i]-left[i]-1));
+        }
+        return maxArea;
+    }
+~~~
+
+
+
+##### 官方解答：暴力破解
+
+~~~java
+int largestRectangleArea(vector<int>& heights) {
+        int n = heights.size();
+        int ans = 0;
+        for (int mid = 0; mid < n; ++mid) {
+            // 枚举高
+            int height = heights[mid];
+            int left = mid, right = mid;
+            // 确定左右边界
+            while (left - 1 >= 0 && heights[left - 1] >= height) {
+                --left;
+            }
+            while (right + 1 < n && heights[right + 1] >= height) {
+                ++right;
+            }
+            // 计算面积
+            ans = max(ans, (right - left + 1) * height);
+        }
+        return ans;
+    }
+~~~
+
+
+
+##### 官方解法：两次遍历单调栈 
+
+~~~java
+ public int largestRectangleArea(int[] heights) {
+        int n = heights.length;
+        int[] left = new int[n];
+        int[] right = new int[n];
+        
+        Deque<Integer> mono_stack = new ArrayDeque<Integer>();
+        for (int i = 0; i < n; ++i) {
+            while (!mono_stack.isEmpty() && heights[mono_stack.peek()] >= heights[i]) {
+                mono_stack.pop();
+            }
+            left[i] = (mono_stack.isEmpty() ? -1 : mono_stack.peek());
+            mono_stack.push(i);
+        }
+
+        mono_stack.clear();
+        for (int i = n - 1; i >= 0; --i) {
+            while (!mono_stack.isEmpty() && heights[mono_stack.peek()] >= heights[i]) {
+                mono_stack.pop();
+            }
+            right[i] = (mono_stack.isEmpty() ? n : mono_stack.peek());
+            mono_stack.push(i);
+        }
+        
+        int ans = 0;
+        for (int i = 0; i < n; ++i) {
+            ans = Math.max(ans, (right[i] - left[i] - 1) * heights[i]);
+        }
+        return ans;
+    }
+~~~
+
+
+
+#### [143. 重排链表](https://leetcode.cn/problems/reorder-list/)
+
+难度中等968收藏分享切换为英文接收动态反馈
+
+给定一个单链表 `L` 的头节点 `head` ，单链表 `L` 表示为：
+
+```
+L0 → L1 → … → Ln - 1 → Ln
+```
+
+请将其重新排列后变为：
+
+```
+L0 → Ln → L1 → Ln - 1 → L2 → Ln - 2 → …
+```
+
+不能只是单纯的改变节点内部的值，而是需要实际的进行节点交换。
+
+ 
+
+**示例 1：**
+
+![img](https://pic.leetcode-cn.com/1626420311-PkUiGI-image.png)
+
+```
+输入：head = [1,2,3,4]
+输出：[1,4,2,3]
+```
+
+**示例 2：**
+
+![img](https://pic.leetcode-cn.com/1626420320-YUiulT-image.png)
+
+```
+输入：head = [1,2,3,4,5]
+输出：[1,5,2,4,3]
+```
+
+ 
+
+**提示：**
+
+- 链表的长度范围为 `[1, 5 * 104]`
+- `1 <= node.val <= 1000`
+
+通过次数196,486
+
+提交次数306,576
+
+##### 我的解法：链表二分
+
+~~~java
+ListNode getMidNode(ListNode head){
+        if(head==null||head.next==null){
+            return head;
+        }
+        ListNode slow=head,fast=head.next;
+        while(fast.next!=null&&fast.next.next!=null){
+            slow=slow.next;
+            fast=fast.next.next;
+        }
+        //断链
+        ListNode mid;
+        if(fast.next==null){
+            mid=slow.next;
+            slow.next=null;
+        }else{
+            mid=slow.next.next;
+            slow.next.next=null;
+        }
+        //fast.next==null表明当前链表节点数是偶数
+        return mid;
+    }
+    ListNode reverseNode(ListNode head){
+        //反转单链表
+        if(head==null||head.next==null){
+            return head;
+        }
+        ListNode next=head.next;
+        head.next=null;
+        ListNode newHead=reverseNode(next);
+        next.next=head;
+        return newHead;
+    }
+    public void reorderList(ListNode head) {
+        //常规做法，直接将这两个链表断开，成两个部分
+        ListNode mid=getMidNode(head);
+        ListNode postHead=reverseNode(mid);
+        ListNode p1=head,p2=postHead;
+        while(p2!=null){
+            ListNode next1=p1.next;
+            ListNode next2=p2.next;
+            p1.next=p2;
+            p2.next=next1;
+            p1=next1;
+            p2=next2;
+        }
+    }
+~~~
+
+
+
+##### 官方解答：数组映射
+
+~~~java
+ public void reorderList(ListNode head) {
+        if (head == null) {
+            return;
+        }
+        List<ListNode> list = new ArrayList<ListNode>();
+        ListNode node = head;
+        while (node != null) {
+            list.add(node);
+            node = node.next;
+        }
+        int i = 0, j = list.size() - 1;
+        while (i < j) {
+            list.get(i).next = list.get(j);
+            i++;
+            if (i == j) {
+                break;
+            }
+            list.get(j).next = list.get(i);
+            j--;
+        }
+        list.get(i).next = null;
+    }
+~~~
+
+
+
+#### [279. 完全平方数](https://leetcode.cn/problems/perfect-squares/)
+
+难度中等1440收藏分享切换为英文接收动态反馈
+
+给你一个整数 `n` ，返回 *和为 `n` 的完全平方数的最少数量* 。
+
+**完全平方数** 是一个整数，其值等于另一个整数的平方；换句话说，其值等于一个整数自乘的积。例如，`1`、`4`、`9` 和 `16` 都是完全平方数，而 `3` 和 `11` 不是。
+
+ 
+
+**示例 1：**
+
+```
+输入：n = 12
+输出：3 
+解释：12 = 4 + 4 + 4
+```
+
+**示例 2：**
+
+```
+输入：n = 13
+输出：2
+解释：13 = 4 + 9
+```
+
+**提示：**
+
+- `1 <= n <= 104`
+
+通过次数312,446
+
+提交次数478,16
+
+##### dp方法
+
+直接使用基本的动态规划即可，关键是分析出子问题
+
+~~~java
+ public int numSquares(int n) {
+        //简单动态规划
+        int[] dp=new int[n+1];
+        for(int i=1;i<=n;i++){
+            int ans=Integer.MAX_VALUE;
+            for(int j=1;j*j<=i;j++){
+                ans=Math.min(ans,dp[i-j*j]+1);
+            }
+            dp[i]=ans;
+        }
+        return dp[n];
+}
+~~~
+
+
+
+#### [1411. 给 N x 3 网格图涂色的方案数](https://leetcode.cn/problems/number-of-ways-to-paint-n-3-grid/)
+
+难度困难106收藏分享切换为英文接收动态反馈
+
+你有一个 `n x 3` 的网格图 `grid` ，你需要用 **红，黄，绿** 三种颜色之一给每一个格子上色，且确保相邻格子颜色不同（也就是有相同水平边或者垂直边的格子颜色不同）。
+
+给你网格图的行数 `n` 。
+
+请你返回给 `grid` 涂色的方案数。由于答案可能会非常大，请你返回答案对 `10^9 + 7` 取余的结果。
+
+ 
+
+**示例 1：**
+
+```
+输入：n = 1
+输出：12
+解释：总共有 12 种可行的方法：
+```
+
+**示例 2：**
+
+```
+输入：n = 2
+输出：54
+```
+
+**示例 3：**
+
+```
+输入：n = 3
+输出：246
+```
+
+**示例 4：**
+
+```
+输入：n = 7
+输出：106494
+```
+
+**示例 5：**
+
+```
+输入：n = 5000
+输出：30228214
+```
+
+ 
+
+**提示：**
+
+- `n == grid.length`
+- `grid[i].length == 3`
+- `1 <= n <= 5000`
+
+通过次数8,909
+
+提交次数15,931
+
+##### 我的解法
+
+题目本身不算太复杂，主要是处理的逻辑步骤比较多，基本思路就是$n$行的网格的具体数量只能由于$n-1$行网格的颜色分布相关。
+
+~~~java
+ public int numOfWays(int n) {
+        int[][] oneCount=new int[][]{{1,2,1},{2,1,2},{3,1,2},
+            {1,2,3},{2,1,3},{3,1,3},
+            {1,3,1},{2,3,1},{3,2,1},
+            {1,3,2},{2,3,2},{3,2,3}
+            };
+        long ans=12;
+        long mod=1000000007;
+        Map<int[],Long> preItemCountMap=
+            Arrays.asList(oneCount).stream().collect(Collectors.toMap(Function.identity(),k->1L));
+        for(int i=2;i<=n;i++){
+            ans=0;
+            Map<int[],Long> updateCountMap=new HashMap();
+            for(int[] item:oneCount){
+                long itemCount=0;
+                for(Map.Entry<int[],Long> entry:preItemCountMap.entrySet()){
+                    boolean matched=true;
+                    for(int j=0;j<item.length;j++){
+                        if(item[j]==entry.getKey()[j]){
+                            matched=false;
+                            break;
+                        }
+                    }
+                    if(matched){
+                        itemCount+=entry.getValue();
+                    }
+                }
+                if(itemCount>0){
+                    itemCount%=mod;
+                    updateCountMap.put(item,itemCount);
+                    ans+=itemCount;
+                }
+            }
+            preItemCountMap=updateCountMap;
+        }
+       return (int)(ans%mod);
+    }
+~~~
+
+
+
+##### 官方解答一
+
+把颜色一维数组转换成了单独的数字
+
+~~~java
+ static final int MOD = 1000000007;
+
+    public int numOfWays(int n) {
+        // 预处理出所有满足条件的 type
+        List<Integer> types = new ArrayList<Integer>();
+        for (int i = 0; i < 3; ++i) {
+            for (int j = 0; j < 3; ++j) {
+                for (int k = 0; k < 3; ++k) {
+                    if (i != j && j != k) {
+                        // 只要相邻的颜色不相同就行
+                        // 将其以十进制的形式存储
+                        types.add(i * 9 + j * 3 + k);
+                    }
+                }
+            }
+        }
+        int typeCnt = types.size();
+        // 预处理出所有可以作为相邻行的 type 对
+        int[][] related = new int[typeCnt][typeCnt];
+        for (int i = 0; i < typeCnt; ++i) {
+            // 得到 types[i] 三个位置的颜色
+            int x1 = types.get(i) / 9, x2 = types.get(i) / 3 % 3, x3 = types.get(i) % 3;
+            for (int j = 0; j < typeCnt; ++j) {
+                // 得到 types[j] 三个位置的颜色
+                int y1 = types.get(j) / 9, y2 = types.get(j) / 3 % 3, y3 = types.get(j) % 3;
+                // 对应位置不同色，才能作为相邻的行
+                if (x1 != y1 && x2 != y2 && x3 != y3) {
+                    related[i][j] = 1;
+                }
+            }
+        }
+        // 递推数组
+        int[][] f = new int[n + 1][typeCnt];
+        // 边界情况，第一行可以使用任何 type
+        for (int i = 0; i < typeCnt; ++i) {
+            f[1][i] = 1;
+        }
+        for (int i = 2; i <= n; ++i) {
+            for (int j = 0; j < typeCnt; ++j) {
+                for (int k = 0; k < typeCnt; ++k) {
+                    // f[i][j] 等于所有 f[i - 1][k] 的和
+                    // 其中 k 和 j 可以作为相邻的行
+                    if (related[k][j] != 0) {
+                        f[i][j] += f[i - 1][k];
+                        f[i][j] %= MOD;
+                    }
+                }
+            }
+        }
+        // 最终所有的 f[n][...] 之和即为答案
+        int ans = 0;
+        for (int i = 0; i < typeCnt; ++i) {
+            ans += f[n][i];
+            ans %= MOD;
+        }
+        return ans;
+    }
+~~~
+
+
+
+#### [1143. 最长公共子序列](https://leetcode.cn/problems/longest-common-subsequence/)
+
+难度中等1064收藏分享切换为英文接收动态反馈
+
+给定两个字符串 `text1` 和 `text2`，返回这两个字符串的最长 **公共子序列** 的长度。如果不存在 **公共子序列** ，返回 `0` 。
+
+一个字符串的 **子序列** 是指这样一个新的字符串：它是由原字符串在不改变字符的相对顺序的情况下删除某些字符（也可以不删除任何字符）后组成的新字符串。
+
+- 例如，`"ace"` 是 `"abcde"` 的子序列，但 `"aec"` 不是 `"abcde"` 的子序列。
+
+两个字符串的 **公共子序列** 是这两个字符串所共同拥有的子序列。
+
+ 
+
+**示例 1：**
+
+```
+输入：text1 = "abcde", text2 = "ace" 
+输出：3  
+解释：最长公共子序列是 "ace" ，它的长度为 3 。
+```
+
+**示例 2：**
+
+```
+输入：text1 = "abc", text2 = "abc"
+输出：3
+解释：最长公共子序列是 "abc" ，它的长度为 3 。
+```
+
+**示例 3：**
+
+```
+输入：text1 = "abc", text2 = "def"
+输出：0
+解释：两个字符串没有公共子序列，返回 0 。
+```
+
+ 
+
+**提示：**
+
+- `1 <= text1.length, text2.length <= 1000`
+- `text1` 和 `text2` 仅由小写英文字符组成。
+
+通过次数257,811
+
+提交次数399,135
+
+##### 我的解法
+
+简单动态规划，注意边界条件处理。
+
+~~~java
+ public int longestCommonSubsequence(String text1, String text2) {
+        int m=text1.length(),n=text2.length();
+        int[][] dp=new int[m][n];
+        int i,j;
+        dp[0][0]=text1.charAt(0)==text2.charAt(0)?1:0;
+        for(i=0;i<m;i++){
+            for(j=0;j<n;j++){
+                if(i==0&&j==0){
+                    continue;
+                }
+                if(i==0){
+                    dp[i][j]=Math.max(text1.charAt(i)==text2.charAt(j)?1:0,dp[i][j-1]);
+                    continue;
+                }
+                if(j==0){
+                    dp[i][j]=Math.max(text1.charAt(i)==text2.charAt(j)?1:0,dp[i-1][j]);
+                    continue;
+                }
+                int carry=text1.charAt(i)==text2.charAt(j)?1:0;
+                dp[i][j]=Math.max(carry+dp[i-1][j-1],Math.max(dp[i-1][j],dp[i][j-1]));
+            }
+        }
+        return dp[m-1][n-1];
+    }
+~~~
+
+
+
+##### 官方解法一
+
+巧用额外空余数组
+
+~~~java
+public int longestCommonSubsequence(String text1, String text2) {
+        int m = text1.length(), n = text2.length();
+        int[][] dp = new int[m + 1][n + 1];
+        for (int i = 1; i <= m; i++) {
+            char c1 = text1.charAt(i - 1);
+            for (int j = 1; j <= n; j++) {
+                char c2 = text2.charAt(j - 1);
+                if (c1 == c2) {
+                    dp[i][j] = dp[i - 1][j - 1] + 1;
+                } else {
+                    dp[i][j] = Math.max(dp[i - 1][j], dp[i][j - 1]);
+                }
+            }
+        }
+        return dp[m][n];
+    }
+~~~
+
+
+
+#### [202. 快乐数](https://leetcode.cn/problems/happy-number/)
+
+难度简单996收藏分享切换为英文接收动态反馈
+
+编写一个算法来判断一个数 `n` 是不是快乐数。
+
+**「快乐数」** 定义为：
+
+- 对于一个正整数，每一次将该数替换为它每个位置上的数字的平方和。
+- 然后重复这个过程直到这个数变为 1，也可能是 **无限循环** 但始终变不到 1。
+- 如果这个过程 **结果为** 1，那么这个数就是快乐数。
+
+如果 `n` 是 *快乐数* 就返回 `true` ；不是，则返回 `false` 。
+
+ 
+
+**示例 1：**
+
+```
+输入：n = 19
+输出：true
+解释：
+12 + 92 = 82
+82 + 22 = 68
+62 + 82 = 100
+12 + 02 + 02 = 1
+```
+
+**示例 2：**
+
+```
+输入：n = 2
+输出：false
+```
+
+ 
+
+**提示：**
+
+- `1 <= n <= 231 - 1`
+
+通过次数277,141
+
+提交次数439,594
+
+##### 常规解法
+
+直接进行枚举操作，由快乐数定义可知，快乐数的值是有限的（通过累加各个数值位的平方和），最终的结果要么最终是一个快乐数或者陷入一个死循环。**(java中没有阶乘符号^)**
+
+~~~java
+ int getNext(int n){
+        int next=0;
+        while(n>0){
+            int mod=n%10;
+            next=next+mod*mod;
+            n/=10;
+        }
+        return next;
+    }
+    public boolean isHappy(int n) {
+        Set<Integer> seen=new HashSet();
+        int next=getNext(n);
+        while(!seen.contains(next)){
+            if(next==1){
+                return true;
+            }
+            seen.add(next);
+            next=getNext(next);
+        }
+        return false;
+    }
+~~~
+
+
+
+#### [剑指 Offer 62. 圆圈中最后剩下的数字](https://leetcode.cn/problems/yuan-quan-zhong-zui-hou-sheng-xia-de-shu-zi-lcof/)
+
+难度简单646收藏分享切换为英文接收动态反馈
+
+0,1,···,n-1这n个数字排成一个圆圈，从数字0开始，每次从这个圆圈里删除第m个数字（删除后从下一个数字开始计数）。求出这个圆圈里剩下的最后一个数字。
+
+例如，0、1、2、3、4这5个数字组成一个圆圈，从数字0开始每次删除第3个数字，则删除的前4个数字依次是2、0、4、1，因此最后剩下的数字是3。
+
+ 
+
+**示例 1：**
+
+```
+输入: n = 5, m = 3
+输出: 3
+```
+
+**示例 2：**
+
+```
+输入: n = 10, m = 17
+输出: 2
+```
+
+ 
+
+**限制：**
+
+- `1 <= n <= 10^5`
+- `1 <= m <= 10^6`
+
+通过次数160,121
+
+提交次数242,847
+
+##### 递归调用
+
+最终保留的数和数字的具体内容无关，只是返回最终的索引。考虑对于问题规模$n$，第一个删除的索引应该是$(m-1)\%n$，删除之后还剩下$n-1$的问题规模，$n$问题的规模相当于$n-1$是起始点右移了$m$位。
+
+~~~java
+ public int lastRemaining(int n, int m) {
+        int index=0;
+        for(int i=2;i<=n;i++){
+           index=(m+index)%i;
+        }
+        return index;
+    }
+~~~
+
+
+
+#### [131. 分割回文串](https://leetcode.cn/problems/palindrome-partitioning/)
+
+难度中等1214收藏分享切换为英文接收动态反馈
+
+给你一个字符串 `s`，请你将 `s` 分割成一些子串，使每个子串都是 **回文串** 。返回 `s` 所有可能的分割方案。
+
+**回文串** 是正着读和反着读都一样的字符串。
+
+ 
+
+**示例 1：**
+
+```
+输入：s = "aab"
+输出：[["a","a","b"],["aa","b"]]
+```
+
+**示例 2：**
+
+```
+输入：s = "a"
+输出：[["a"]]
+```
+
+ 
+
+**提示：**
+
+- `1 <= s.length <= 16`
+- `s` 仅由小写英文字母组成
+
+通过次数216,393
+
+提交次数295,807
+
+##### 直接递归求解
+
+~~~java
+ private boolean isParlindrome(String s){
+        if(s==null||s.length()==0){
+            return false;
+        }
+        int left=0,right=s.length()-1;
+        while(left<right){
+            if(s.charAt(left)!=s.charAt(right)){
+                return false;
+            }
+            left++;
+            right--;
+        }
+        return true;
+    }
+    
+
+    public void backtrace(List<List<String>> pathList,List<String> path,String s,int startIndex){
+        //回溯方法和剪枝方法应用
+        if(startIndex==s.length()){
+            pathList.add(new ArrayList(path));
+            return;
+        }
+        for(int i=1;i+startIndex<=s.length();i++){
+            String sub=s.substring(startIndex,startIndex+i);
+            if(isParlindrome(sub)){
+                path.add(sub);
+                backtrace(pathList,path,s,startIndex+i);
+                path.remove(path.size()-1);
+            }
+        }
+    }
+    public List<List<String>> partition(String s) {
+       List<List<String>> pathList=new ArrayList();
+       backtrace(pathList,new ArrayList(),s,0);
+       return pathList;
+    }
+~~~
+
+
+
+
+
+##### 官方解答1：dfs和动态规划
+
+~~~java
+boolean[][] f;
+    List<List<String>> ret = new ArrayList<List<String>>();
+    List<String> ans = new ArrayList<String>();
+    int n;
+
+    public List<List<String>> partition(String s) {
+        n = s.length();
+        f = new boolean[n][n];
+        for (int i = 0; i < n; ++i) {
+            Arrays.fill(f[i], true);
+        }
+
+        for (int i = n - 1; i >= 0; --i) {
+            for (int j = i + 1; j < n; ++j) {
+                f[i][j] = (s.charAt(i) == s.charAt(j)) && f[i + 1][j - 1];
+            }
+        }
+        dfs(s, 0);
+        return ret;
+    }
+
+    public void dfs(String s, int i) {
+        if (i == n) {
+            ret.add(new ArrayList<String>(ans));
+            return;
+        }
+        for (int j = i; j < n; ++j) {
+            if (f[i][j]) {
+                ans.add(s.substring(i, j + 1));
+                dfs(s, j + 1);
+                ans.remove(ans.size() - 1);
+            }
+        }
+    }
+~~~
+
+
+
+#### [133. 克隆图](https://leetcode.cn/problems/clone-graph/)
+
+难度中等518收藏分享切换为英文接收动态反馈
+
+给你无向 **[连通](https://baike.baidu.com/item/连通图/6460995?fr=aladdin)** 图中一个节点的引用，请你返回该图的 [**深拷贝**](https://baike.baidu.com/item/深拷贝/22785317?fr=aladdin)（克隆）。
+
+图中的每个节点都包含它的值 `val`（`int`） 和其邻居的列表（`list[Node]`）。
+
+```
+class Node {
+    public int val;
+    public List<Node> neighbors;
+}
+```
+
+ 
+
+**测试用例格式：**
+
+简单起见，每个节点的值都和它的索引相同。例如，第一个节点值为 1（`val = 1`），第二个节点值为 2（`val = 2`），以此类推。该图在测试用例中使用邻接列表表示。
+
+**邻接列表** 是用于表示有限图的无序列表的集合。每个列表都描述了图中节点的邻居集。
+
+给定节点将始终是图中的第一个节点（值为 1）。你必须将 **给定节点的拷贝** 作为对克隆图的引用返回。
+
+ 
+
+**示例 1：**
+
+![img](https://assets.leetcode-cn.com/aliyun-lc-upload/uploads/2020/02/01/133_clone_graph_question.png)
+
+```
+输入：adjList = [[2,4],[1,3],[2,4],[1,3]]
+输出：[[2,4],[1,3],[2,4],[1,3]]
+解释：
+图中有 4 个节点。
+节点 1 的值是 1，它有两个邻居：节点 2 和 4 。
+节点 2 的值是 2，它有两个邻居：节点 1 和 3 。
+节点 3 的值是 3，它有两个邻居：节点 2 和 4 。
+节点 4 的值是 4，它有两个邻居：节点 1 和 3 。
+```
+
+**示例 2：**
+
+![img](https://assets.leetcode-cn.com/aliyun-lc-upload/uploads/2020/02/01/graph.png)
+
+```
+输入：adjList = [[]]
+输出：[[]]
+解释：输入包含一个空列表。该图仅仅只有一个值为 1 的节点，它没有任何邻居。
+```
+
+**示例 3：**
+
+```
+输入：adjList = []
+输出：[]
+解释：这个图是空的，它不含任何节点。
+```
+
+**示例 4：**
+
+![img](https://assets.leetcode-cn.com/aliyun-lc-upload/uploads/2020/02/01/graph-1.png)
+
+```
+输入：adjList = [[2],[1]]
+输出：[[2],[1]]
+```
+
+ 
+
+**提示：**
+
+1. 节点数不超过 100 。
+2. 每个节点值 `Node.val` 都是唯一的，`1 <= Node.val <= 100`。
+3. 无向图是一个[简单图](https://baike.baidu.com/item/简单图/1680528?fr=aladdin)，这意味着图中没有重复的边，也没有自环。
+4. 由于图是无向的，如果节点 *p* 是节点 *q* 的邻居，那么节点 *q* 也必须是节点 *p* 的邻居。
+5. 图是连通图，你可以从给定节点访问到所有节点。
+
+通过次数97,068
+
+提交次数141,726
+
+
+
+##### 直接解法
+
+采用dfs构建方法，由于图中可能存在循环引用问题，所以需要实现缓存对应的数据节点。
+
+~~~java
+ Map<Integer,Node> map=new HashMap();
+    Node dfs(Node initNode){
+        if(initNode==null){
+            return initNode;
+        }
+        if(map.containsKey(initNode.val)){
+            return map.get(initNode.val);
+        }
+        Node cloneNode=new Node(initNode.val);
+        map.put(initNode.val,cloneNode);
+        List<Node> neighbors=initNode.neighbors;
+        if(neighbors!=null){
+            List<Node> cloneNeignbors=new ArrayList();
+            for(Node node:neighbors){
+                cloneNeignbors.add(dfs(node));
+            }
+            cloneNode.neighbors=cloneNeignbors;
+        }
+        return cloneNode;
+    }
+    public Node cloneGraph(Node node) {
+        Node cloneNode=dfs(node);
+        return cloneNode;
+    }
+~~~
+
+
+
+##### 官方题解2：广度优先
+
+~~~java
+ public Node cloneGraph(Node node) {
+        if (node == null) {
+            return node;
+        }
+
+        HashMap<Node, Node> visited = new HashMap();
+
+        // 将题目给定的节点添加到队列
+        LinkedList<Node> queue = new LinkedList<Node> ();
+        queue.add(node);
+        // 克隆第一个节点并存储到哈希表中
+        visited.put(node, new Node(node.val, new ArrayList()));
+
+        // 广度优先搜索
+        while (!queue.isEmpty()) {
+            // 取出队列的头节点
+            Node n = queue.remove();
+            // 遍历该节点的邻居
+            for (Node neighbor: n.neighbors) {
+                if (!visited.containsKey(neighbor)) {
+                    // 如果没有被访问过，就克隆并存储在哈希表中
+                    visited.put(neighbor, new Node(neighbor.val, new ArrayList()));
+                    // 将邻居节点加入队列中
+                    queue.add(neighbor);
+                }
+                // 更新当前节点的邻居列表
+                visited.get(n).neighbors.add(visited.get(neighbor));
+            }
+        }
+
+        return visited.get(node);
+    }
+~~~
+
+
+
+#### [剑指 Offer 51. 数组中的逆序对](https://leetcode.cn/problems/shu-zu-zhong-de-ni-xu-dui-lcof/)
+
+难度困难807收藏分享切换为英文接收动态反馈
+
+在数组中的两个数字，如果前面一个数字大于后面的数字，则这两个数字组成一个逆序对。输入一个数组，求出这个数组中的逆序对的总数。
+
+ 
+
+**示例 1:**
+
+```
+输入: [7,5,6,4]
+输出: 5
+```
+
+ 
+
+**限制：**
+
+```
+0 <= 数组长度 <= 50000
+```
+
+通过次数158,971
+
+提交次数321,434
+
+##### 二分解法
+
+只管的暴力破解法时间复杂度是$O(n^2)$，会超时。考虑到采用分治算法。逆序队的数字来源分为三个部分，左边、右边、较大的数字在左边小的数字在右边，一共三种场景。主要是第三种场景，如何在$O(n)$的时间内计算迭代，考虑到是比较数值大小，可以结合归并排序。
+
+**数组中的第一个元素存放的是逆序队个数**
+
+~~~java
+int[] combineSort(int[] nums,int left,int right){
+        //归并排序，同时将归并排序的逆序对返回，作为数组首位
+        if(left>right){
+            return new int[]{0};
+        }
+        if(left==right){
+            return new int[]{0,nums[left]};
+        }
+        int mid=(left+right)/2;
+        int[] leftNums=combineSort(nums,left,mid);
+        int[] rightNums=combineSort(nums,mid+1,right);
+        int reverseCount=leftNums[0]+rightNums[0];
+        int[] sortNums=new int[leftNums.length+rightNums.length-1];
+        int i=1,j=1,k=1;
+        while(i<leftNums.length&&j<rightNums.length){
+            if(leftNums[i]<=rightNums[j]){
+                sortNums[k++]=leftNums[i++];
+            }else{
+                //逆序数量添加
+                reverseCount+=leftNums.length-i;
+                sortNums[k++]=rightNums[j++];
+            }
+        }
+        while(i<leftNums.length){
+             sortNums[k++]=leftNums[i++];
+        }
+        while(j<rightNums.length){
+             sortNums[k++]=rightNums[j++];
+        }
+        sortNums[0]=reverseCount;
+        return sortNums;
+    }
+    public int reversePairs(int[] nums) {
+         return combineSort(nums,0,nums.length-1)[0];
+    }
+~~~
+
+
+
+
+
+
+
+
+
+
+
+
+
+## 2022年8月
+
+#### [456. *132 模式](https://leetcode.cn/problems/132-pattern/)
+
+难度中等682收藏分享切换为英文接收动态反馈
+
+给你一个整数数组 `nums` ，数组中共有 `n` 个整数。**132 模式的子序列** 由三个整数 `nums[i]`、`nums[j]` 和 `nums[k]` 组成，并同时满足：`i < j < k` 和 `nums[i] < nums[k] < nums[j]` 。
+
+如果 `nums` 中存在 **132 模式的子序列** ，返回 `true` ；否则，返回 `false` 。
+
+ 
+
+**示例 1：**
+
+```
+输入：nums = [1,2,3,4]
+输出：false
+解释：序列中不存在 132 模式的子序列。
+```
+
+**示例 2：**
+
+```
+输入：nums = [3,1,4,2]
+输出：true
+解释：序列中有 1 个 132 模式的子序列： [1, 4, 2] 。
+```
+
+**示例 3：**
+
+```
+输入：nums = [-1,3,2,0]
+输出：true
+解释：序列中有 3 个 132 模式的的子序列：[-1, 3, 2]、[-1, 3, 0] 和 [-1, 2, 0] 。
+```
+
+ 
+
+**提示：**
+
+- `n == nums.length`
+- `1 <= n <= 2 * 105`
+- `-109 <= nums[i] <= 109`
+
+通过次数68,683
+
+提交次数188,480
+
+##### 解法一
+
+由题目第一次想到的是通过单调栈来解决这个问题，以中间坐标$j$所在的数作为基准，由题目所知，第一次查找$j$左边比$nums[j]$小的最小的数值$i$，采用单调递增栈；下一步查找对应的$k$,数值$nums[k]$应该是比$nums[j]$小的最大的值，但是无法在$O(n)$时间复杂度查找出来。退而求其次，采用排序map方式，通过查找$nums[i]+1$的上边界，然后进行比较。
+
+~~~java
+ public boolean find132pattern(int[] nums) {
+        //以中间数值索引j作为基础，向左右两边查找扩展
+        //左边找到比坐标j索引小的最小的值，右边找到比坐标索引j小的最大的一个值
+        Deque<Integer> lowLeft=new LinkedList();
+        if(nums.length<3){
+            return false;
+        }
+        //用来查找j的右边界
+        TreeMap<Integer,Integer> rightMap=new TreeMap();
+        for(int num:nums){
+            rightMap.put(num,rightMap.getOrDefault(num,0)+1);
+        }
+        int i;
+        //找到左边界，左边界是单调递增栈
+        for(i=0;i<nums.length;i++){
+            while(!lowLeft.isEmpty()&&nums[lowLeft.peek()]>=nums[i]){
+                lowLeft.pop();
+            }
+            int lowIndex=lowLeft.isEmpty()?-1:lowLeft.getLast();
+            Integer count=rightMap.get(nums[i]);
+            count--;
+            if(count==0){
+                rightMap.remove(nums[i]);
+            }else{
+                rightMap.put(nums[i],count);
+            }
+            if(lowIndex!=-1){
+                //查找比当前值的最接近的上界
+                Integer nextKey=rightMap.ceilingKey(nums[lowIndex]+1);
+                if(nextKey!=null&&nextKey<nums[i]){
+                    return true;
+                }
+            }
+            lowLeft.push(i);
+        }
+      
+        return false;
+    }
+~~~
+
+
+
+##### 官方解法2：单调栈
+
+看不太明白，单调栈里面维护的是中间大的那个坐标$k$。
+
+~~~java
+ public boolean find132pattern(int[] nums) {
+        int n = nums.length;
+        Deque<Integer> candidateK = new LinkedList<Integer>();
+        candidateK.push(nums[n - 1]);
+        int maxK = Integer.MIN_VALUE;
+
+        for (int i = n - 2; i >= 0; --i) {
+            if (nums[i] < maxK) {
+                return true;
+            }
+            while (!candidateK.isEmpty() && nums[i] > candidateK.peek()) {
+                maxK = candidateK.pop();
+            }
+            if (nums[i] > maxK) {
+                candidateK.push(nums[i]);
+            }
+        }
+
+        return false;
+    }
+
+~~~
+
+
+
+#### [815. 公交路线](https://leetcode.cn/problems/bus-routes/)
+
+难度困难300收藏分享切换为英文接收动态反馈
+
+给你一个数组 `routes` ，表示一系列公交线路，其中每个 `routes[i]` 表示一条公交线路，第 `i` 辆公交车将会在上面循环行驶。
+
+- 例如，路线 `routes[0] = [1, 5, 7]` 表示第 `0` 辆公交车会一直按序列 `1 -> 5 -> 7 -> 1 -> 5 -> 7 -> 1 -> ...` 这样的车站路线行驶。
+
+现在从 `source` 车站出发（初始时不在公交车上），要前往 `target` 车站。 期间仅可乘坐公交车。
+
+求出 **最少乘坐的公交车数量** 。如果不可能到达终点车站，返回 `-1` 。
+
+ 
+
+**示例 1：**
+
+```
+输入：routes = [[1,2,7],[3,6,7]], source = 1, target = 6
+输出：2
+解释：最优策略是先乘坐第一辆公交车到达车站 7 , 然后换乘第二辆公交车到车站 6 。 
+```
+
+**示例 2：**
+
+```
+输入：routes = [[7,12],[4,5,15],[6],[15,19],[9,12,13]], source = 15, target = 12
+输出：-1
+```
+
+ 
+
+**提示：**
+
+- `1 <= routes.length <= 500`.
+- `1 <= routes[i].length <= 105`
+- `routes[i]` 中的所有值 **互不相同**
+- `sum(routes[i].length) <= 105`
+- `0 <= routes[i][j] < 106`
+- `0 <= source, target < 106`
+
+通过次数32,021
+
+提交次数73,204
+
+##### 我的解法
+
+建立车站和公交路线的map映射，然后采用bfs遍历。本质上是建立公交路线的图结构，官方采用的是邻接数组方式
+
+~~~java
+public int numBusesToDestination(int[][] routes, int source, int target) {
+        //bfs算法，首先建立公交车站和路线索引的映射关系，然后通过bfs遍历路径
+        Map<Integer,Set<Integer>> mp=new HashMap();
+        Set<Integer> seen=new HashSet();
+        int i,j;
+        for(i=0;i<routes.length;i++){
+            for(j=0;j<routes[i].length;j++){
+                mp.computeIfAbsent(routes[i][j],k->new HashSet()).add(i);
+            }
+        }
+    	//注意边界
+        if(source==target){
+            return 0;
+        }
+        Queue<Integer> queue=new LinkedList();
+        queue.addAll(mp.getOrDefault(source,new HashSet()));
+        int steps=0;
+        while(!queue.isEmpty()){
+            int size=queue.size();
+            steps++;
+            for(i=0;i<size;i++){
+                int routeIndex=queue.poll();
+                if(seen.contains(routeIndex)){
+                    continue;
+                }
+                seen.add(routeIndex);
+                Set<Integer> buses=Arrays.stream(routes[routeIndex]).boxed().collect(Collectors.toSet());       if(buses.contains(target)){
+                    return steps;
+                }
+                for(Integer bus:buses){
+                    queue.addAll(mp.getOrDefault(bus,new HashSet()));
+                }
+            }
+        }
+        return -1;
+    }
+~~~
+
+
+
+#### [208. 实现 Trie (前缀树)](https://leetcode.cn/problems/implement-trie-prefix-tree/)
+
+难度中等1252收藏分享切换为英文接收动态反馈
+
+**[Trie](https://baike.baidu.com/item/字典树/9825209?fr=aladdin)**（发音类似 "try"）或者说 **前缀树** 是一种树形数据结构，用于高效地存储和检索字符串数据集中的键。这一数据结构有相当多的应用情景，例如自动补完和拼写检查。
+
+请你实现 Trie 类：
+
+- `Trie()` 初始化前缀树对象。
+- `void insert(String word)` 向前缀树中插入字符串 `word` 。
+- `boolean search(String word)` 如果字符串 `word` 在前缀树中，返回 `true`（即，在检索之前已经插入）；否则，返回 `false` 。
+- `boolean startsWith(String prefix)` 如果之前已经插入的字符串 `word` 的前缀之一为 `prefix` ，返回 `true` ；否则，返回 `false` 。
+
+ 
+
+**示例：**
+
+```
+输入
+["Trie", "insert", "search", "search", "startsWith", "insert", "search"]
+[[], ["apple"], ["apple"], ["app"], ["app"], ["app"], ["app"]]
+输出
+[null, null, true, false, true, null, true]
+
+解释
+Trie trie = new Trie();
+trie.insert("apple");
+trie.search("apple");   // 返回 True
+trie.search("app");     // 返回 False
+trie.startsWith("app"); // 返回 True
+trie.insert("app");
+trie.search("app");     // 返回 True
+```
+
+ 
+
+**提示：**
+
+- `1 <= word.length, prefix.length <= 2000`
+- `word` 和 `prefix` 仅由小写英文字母组成
+- `insert`、`search` 和 `startsWith` 调用次数 **总计** 不超过 `3 * 104` 次
+
+通过次数215,941
+
+提交次数300,034
+
+##### 二叉搜索树思想
+
+比较简单
+
+~~~java
+ Tree root;
+    public Trie() {
+
+    }
+    
+    public void insert(String word) {
+        if(root==null){
+            root=new Tree(word);
+            return;
+        }
+        Tree endTree=searchPos(null,root,word);
+        int cmp=endTree.word.compareTo(word);
+        if(cmp>0){
+            endTree.left=new Tree(word);
+        }else if(cmp<0){
+            endTree.right=new Tree(word);
+        }
+    }
+    private Tree searchPos(Tree parent,Tree tree,String word){
+        if(tree==null){
+            return parent;
+        }
+        int cmp=tree.word.compareTo(word);
+        if(cmp==0){
+            return tree;
+        }else if(cmp>0){
+            return searchPos(tree,tree.left,word);
+        }else{
+            return searchPos(tree,tree.right,word);
+        }
+    }
+    
+    public boolean search(String word) {
+       return searchWord(root,word);
+    }
+    private boolean searchWord(Tree root,String word){
+        if(root==null){
+            return false;
+        }
+        int cmp=root.word.compareTo(word);
+        if(cmp==0){
+            return true;
+        }else if(cmp>0){
+            return searchWord(root.left,word);
+        }else{
+            return searchWord(root.right,word);
+        }
+    }
+    
+    boolean startsWith(Tree root,String prefix){
+          if(root==null){
+            return false;
+        }
+        if(root.word.startsWith(prefix)){
+            return true;
+        }
+        int cmp=root.word.compareTo(prefix);
+        if(cmp>0){
+            return startsWith(root.left,prefix);
+        }else{
+            return startsWith(root.right,prefix);
+        }
+    }
+    public boolean startsWith(String prefix) {
+      return startsWith(root,prefix);
+    }
+    static class Tree{
+        String word;
+        public Tree(String word){
+            this.word=word;
+        }
+        Tree left;
+        Tree right;
+    }
+~~~
+
+
+
+##### 官方解答：单个字符
+
+不是很容易理解，每个前缀树建立26个子节点，表示以为字母$a,b,c...z$开头的字符串，每一个字符占据树的一层
+
+~~~java
+ private Trie[] children;
+    private boolean isEnd;
+
+    public Trie() {
+        children = new Trie[26];
+        isEnd = false;
+    }
+    
+    public void insert(String word) {
+        Trie node = this;
+        for (int i = 0; i < word.length(); i++) {
+            char ch = word.charAt(i);
+            int index = ch - 'a';
+            if (node.children[index] == null) {
+                node.children[index] = new Trie();
+            }
+            node = node.children[index];
+        }
+        node.isEnd = true;
+    }
+    
+    public boolean search(String word) {
+        Trie node = searchPrefix(word);
+        return node != null && node.isEnd;
+    }
+    
+    public boolean startsWith(String prefix) {
+        return searchPrefix(prefix) != null;
+    }
+
+    private Trie searchPrefix(String prefix) {
+        Trie node = this;
+        for (int i = 0; i < prefix.length(); i++) {
+            char ch = prefix.charAt(i);
+            int index = ch - 'a';
+            if (node.children[index] == null) {
+                return null;
+            }
+            node = node.children[index];
+        }
+        return node;
+    }
+~~~
+
+
+
+#### [32. 最长有效括号](https://leetcode.cn/problems/longest-valid-parentheses/)
+
+难度困难1933收藏分享切换为英文接收动态反馈
+
+给你一个只包含 `'('` 和 `')'` 的字符串，找出最长有效（格式正确且连续）括号子串的长度。
+
+ 
+
+**示例 1：**
+
+```
+输入：s = "(()"
+输出：2
+解释：最长有效括号子串是 "()"
+```
+
+**示例 2：**
+
+```
+输入：s = ")()())"
+输出：4
+解释：最长有效括号子串是 "()()"
+```
+
+**示例 3：**
+
+```
+输入：s = ""
+输出：0
+```
+
+ 
+
+**提示：**
+
+- `0 <= s.length <= 3 * 104`
+- `s[i]` 为 `'('` 或 `')'`
+
+通过次数296,189
+
+提交次数805,372
+
+##### 我的解法
+
+第一选择是通过递归来实现，不过超时了。采用动态规划方式，定义
+
+$dp[i]$表示以$i$坐标结尾的最长括号，显然只有$i$坐标是$)$该值才可能不为空。查看子问题：
+
+- 如果$i-1$的字符是$($，那么最长长度是$2+dp[i-2]$
+- 如果$i-1$的字符是$)$，那么查看以$i-1$结尾的最长括号的左边界的前一个数值是否是$($
+
+~~~java
+public int longestValidParentheses(String s) {
+        //dp算法实现，定义dp[i]表示第i个字符结尾的字符串的最大
+        //括号长度
+        int[] dp=new int[s.length()+1];
+        int ans=0;
+        char[] arr=s.toCharArray();
+        for(int i=0;i<arr.length;i++){
+            char ch=arr[i];
+            if(ch=='('){
+                continue;
+            }
+            //当前结尾的字符是)，如果上一个字符是(,那么结果是s[i]=s[i-2]+2;
+            //否则判断与当前字符匹配的位置的字符是否是(
+            int j=i-1;
+            if(i-1>=0){
+                if(arr[i-1]=='('){
+                    dp[i+1]=dp[i-1]+2;
+                }else{
+                    //查看与)对应的上一个字符
+                    j=i-dp[i]-1;
+                    if(j>=0&&arr[j]=='('){
+                        dp[i+1]=dp[j]+i-j+1;
+                    }
+                }
+
+            }
+            ans=Math.max(ans,dp[i+1]);
+        }
+        return ans;
+    }
+~~~
+
+
+
+##### 官方解法二：栈
+
+栈底存放的是最后一个没有匹配的$)$的下标，每次遍历的时候，遇到$($入栈，遇到$)$出栈，并更新括号最大长度。初始化添加-1表示未匹配的
+
+$)$下标。
+
+~~~java
+ public int longestValidParentheses(String s) {
+        int maxans = 0;
+        Deque<Integer> stack = new LinkedList<Integer>();
+        stack.push(-1);
+        for (int i = 0; i < s.length(); i++) {
+            if (s.charAt(i) == '(') {
+                stack.push(i);
+            } else {
+                stack.pop();
+                if (stack.isEmpty()) {
+                    stack.push(i);
+                } else {
+                    maxans = Math.max(maxans, i - stack.peek());
+                }
+            }
+        }
+        return maxans;
+    }
+~~~
+
+
+
+##### 官方解法三：不使用额外空间
+
+利用括号的性质，遍历的时候记录左括号和右括号的数量，从左到右遍历的时候，如果右括号数量大于左括号数量，那么充值；如果相等，那么更新最长有效括号。注意对于$(()$这种场景，是无法获取的，这种情况采用逆序方式从右边到左遍历。
+
+~~~java
+ public int longestValidParentheses(String s) {
+        int left = 0, right = 0, maxlength = 0;
+        for (int i = 0; i < s.length(); i++) {
+            if (s.charAt(i) == '(') {
+                left++;
+            } else {
+                right++;
+            }
+            if (left == right) {
+                maxlength = Math.max(maxlength, 2 * right);
+            } else if (right > left) {
+                left = right = 0;
+            }
+        }
+        left = right = 0;
+        for (int i = s.length() - 1; i >= 0; i--) {
+            if (s.charAt(i) == '(') {
+                left++;
+            } else {
+                right++;
+            }
+            if (left == right) {
+                maxlength = Math.max(maxlength, 2 * left);
+            } else if (left > right) {
+                left = right = 0;
+            }
+        }
+        return maxlength;
+    }
+~~~
+
+
+
+#### [10. 正则表达式匹配](https://leetcode.cn/problems/regular-expression-matching/)
+
+难度困难3128
+
+给你一个字符串 `s` 和一个字符规律 `p`，请你来实现一个支持 `'.'` 和 `'*'` 的正则表达式匹配。
+
+- `'.'` 匹配任意单个字符
+- `'*'` 匹配零个或多个前面的那一个元素
+
+所谓匹配，是要涵盖 **整个** 字符串 `s`的，而不是部分字符串。
+
+**示例 1：**
+
+```
+输入：s = "aa", p = "a"
+输出：false
+解释："a" 无法匹配 "aa" 整个字符串。
+```
+
+**示例 2:**
+
+```
+输入：s = "aa", p = "a*"
+输出：true
+解释：因为 '*' 代表可以匹配零个或多个前面的那一个元素, 在这里前面的元素就是 'a'。因此，字符串 "aa" 可被视为 'a' 重复了一次。
+```
+
+**示例 3：**
+
+```
+输入：s = "ab", p = ".*"
+输出：true
+解释：".*" 表示可匹配零个或多个（'*'）任意字符（'.'）。
+```
+
+ 
+
+**提示：**
+
+- `1 <= s.length <= 20`
+- `1 <= p.length <= 30`
+- `s` 只包含从 `a-z` 的小写字母。
+- `p` 只包含从 `a-z` 的小写字母，以及字符 `.` 和 `*`。
+- 保证每次出现字符 `*` 时，前面都匹配到有效的字符
+
+通过次数300,836
+
+提交次数949,197
+
+##### 递归方式匹配
+
+难点主要在于对于$*$符号的处理
+
+~~~java
+ boolean regexMatch(char[] arr1,int i,char[] arr2,int j){
+        if(i==arr1.length||j==arr2.length){
+            //还有此种匹配a和ab*这种
+            if(j!=arr2.length){
+                if(j+1<arr2.length && arr2[j+1]=='*'){
+                    return regexMatch(arr1,i,arr2,j+2);
+                }
+                return false;
+            }
+            return i==arr1.length && j==arr2.length;
+        }
+        //正常匹配
+        if(j==arr2.length-1||(j+1<arr2.length && arr2[j+1]!='*')){
+            if(arr1[i]==arr2[j]||arr2[j]=='.'){
+                return regexMatch(arr1,i+1,arr2,j+1);
+            }else{
+                return false;
+            }
+        }
+        //通配符*匹配，*跳过
+        if(arr1[i]!=arr2[j]&&arr2[j]!='.'){
+            return regexMatch(arr1,i,arr2,j+2);
+        }
+        return regexMatch(arr1,i,arr2,j+2)||regexMatch(arr1,i+1,arr2,j)||regexMatch(arr1,i+1,arr2,j+2);
+    }
+    public boolean isMatch(String s, String p) {
+        char[] arr1=s.toCharArray();
+        char[] arr2=p.toCharArray();
+        return regexMatch(arr1,0,arr2,0);
+    }
+~~~
+
+
+
+##### 官方解法二：动态规划
+
+对于\*有两种匹配原则，字符\*需要和其它字符组合使用
+
+1. 匹配 $s$ 末尾的一个字符，将该字符扔掉，而该组合还可以继续进行匹配。 $f[i-1][j]$
+2. 不匹配字符，将该组合扔掉，不再进行匹配。$f[i][j-2]$
+
+~~~java
+public boolean isMatch(String s, String p) {
+        int m = s.length();
+        int n = p.length();
+
+        boolean[][] f = new boolean[m + 1][n + 1];
+        f[0][0] = true;
+        for (int i = 0; i <= m; ++i) {
+            for (int j = 1; j <= n; ++j) {
+                if (p.charAt(j - 1) == '*') {
+                    f[i][j] = f[i][j - 2];
+                    if (matches(s, p, i, j - 1)) {
+                        f[i][j] = f[i][j] || f[i - 1][j];
+                    }
+                } else {
+                    if (matches(s, p, i, j)) {
+                        f[i][j] = f[i - 1][j - 1];
+                    }
+                }
+            }
+        }
+        return f[m][n];
+    }
+
+    public boolean matches(String s, String p, int i, int j) {
+        if (i == 0) {
+            return false;
+        }
+        if (p.charAt(j - 1) == '.') {
+            return true;
+        }
+        return s.charAt(i - 1) == p.charAt(j - 1);
+    }
+~~~
+
+
+
+#### [6. Z 字形变换](https://leetcode.cn/problems/zigzag-conversion/)
+
+难度中等1753
+
+将一个给定字符串 `s` 根据给定的行数 `numRows` ，以从上往下、从左到右进行 Z 字形排列。
+
+比如输入字符串为 `"PAYPALISHIRING"` 行数为 `3` 时，排列如下：
+
+```
+P   A   H   N
+A P L S I I G
+Y   I   R
+```
+
+之后，你的输出需要从左往右逐行读取，产生出一个新的字符串，比如：`"PAHNAPLSIIGYIR"`。
+
+请你实现这个将字符串进行指定行数变换的函数：
+
+```
+string convert(string s, int numRows);
+```
+
+ 
+
+**示例 1：**
+
+```
+输入：s = "PAYPALISHIRING", numRows = 3
+输出："PAHNAPLSIIGYIR"
+```
+
+**示例 2：**
+
+```
+输入：s = "PAYPALISHIRING", numRows = 4
+输出："PINALSIGYAHRPI"
+解释：
+P     I    N
+A   L S  I G
+Y A   H R
+P     I
+```
+
+**示例 3：**
+
+```
+输入：s = "A", numRows = 1
+输出："A"
+```
+
+ 
+
+**提示：**
+
+- `1 <= s.length <= 1000`
+- `s` 由英文字母（小写和大写）、`','` 和 `'.'` 组成
+- `1 <= numRows <= 1000`
+
+通过次数465,322
+
+提交次数894,832
+
+##### 基本解法
+
+主要是对于周期的处理
+
+~~~java
+  public String convert(String s, int numRows) {
+        if(numRows==1||numRows>=s.length()){
+            return s;
+        }
+        //单个周期需要的元素个数
+        int r=numRows*2-2;
+        //最大的列数，可能达不到
+        int col=(s.length()+r-1)/r*(numRows-1);
+        StringBuilder[] ansList=new StringBuilder[numRows];
+        for(int i=0;i<ansList.length;i++){
+            ansList[i]=new StringBuilder();
+        }
+        //当前字符对应的行数
+        int x=-1;
+        for(int i=0;i<s.length();i++){
+            int mod=i%r;
+            if(mod<=numRows-1){
+                x=mod;
+            }else{
+                x--;
+            }
+            ansList[x].append(s.charAt(i));
+        }
+        StringBuilder ans=new StringBuilder();
+        for(StringBuilder row:ansList){
+            ans.append(row);
+        }
+        return ans.toString();
+    }
+~~~
+
+
+
+#### [73. 矩阵置零](https://leetcode.cn/problems/set-matrix-zeroes/)
+
+难度中等752
+
+给定一个 `*m* x *n*` 的矩阵，如果一个元素为 **0** ，则将其所在行和列的所有元素都设为 **0** 。请使用 **[原地](http://baike.baidu.com/item/原地算法)** 算法**。**
+
+
+
+ 
+
+**示例 1：**
+
+![img](https://assets.leetcode.com/uploads/2020/08/17/mat1.jpg)
+
+```
+输入：matrix = [[1,1,1],[1,0,1],[1,1,1]]
+输出：[[1,0,1],[0,0,0],[1,0,1]]
+```
+
+**示例 2：**
+
+![img](https://assets.leetcode.com/uploads/2020/08/17/mat2.jpg)
+
+```
+输入：matrix = [[0,1,2,0],[3,4,5,2],[1,3,1,5]]
+输出：[[0,0,0,0],[0,4,5,0],[0,3,1,0]]
+```
+
+ 
+
+**提示：**
+
+- `m == matrix.length`
+- `n == matrix[0].length`
+- `1 <= m, n <= 200`
+- `-231 <= matrix[i][j] <= 231 - 1`
+
+ 
+
+**进阶：**
+
+- 一个直观的解决方案是使用  `O(*m**n*)` 的额外空间，但这并不是一个好的解决方案。
+- 一个简单的改进方案是使用 `O(*m* + *n*)` 的额外空间，但这仍然不是最好的解决方案。
+- 你能想出一个仅使用常量空间的解决方案吗？
+
+##### 直接解法
+
+~~~java
+ public void setZeroes(int[][] matrix) {
+        Set<Integer> zeroRowSet=new HashSet();
+        Set<Integer> zeroColSet=new HashSet();
+        int i,j;
+        for(i=0;i<matrix.length;i++){
+            for(j=0;j<matrix[i].length;j++){
+                if(matrix[i][j]==0){
+                    zeroRowSet.add(i);
+                    zeroColSet.add(j);
+                }
+            }
+        }
+        //原地赋值，行
+        for(Integer rowIndex:zeroRowSet){
+            int[] rowMatrix=matrix[rowIndex];
+            Arrays.fill(rowMatrix,0);
+        }
+        //原地赋值，列
+        for(Integer colIndex:zeroColSet){
+            for(i=0;i<matrix.length;i++){
+                matrix[i][colIndex]=0;
+            }
+        }
+
+    }
+~~~
+
+
+
+##### 解法二：使用两个标记变量
+
+以第一行和第一列作为标记，指示当前行或者列是否需要赋0。对于$matrix[i][j]$，只要$matrix[0][j]==0或者matrix[i][0]==0$，那么这个数值就赋值为0，初始化时候应该查找第一行和第一列的标记。
+
+~~~java
+ public void setZeroes(int[][] matrix) {
+        int m = matrix.length, n = matrix[0].length;
+        boolean flagCol0 = false, flagRow0 = false;
+        for (int i = 0; i < m; i++) {
+            if (matrix[i][0] == 0) {
+                flagCol0 = true;
+            }
+        }
+        for (int j = 0; j < n; j++) {
+            if (matrix[0][j] == 0) {
+                flagRow0 = true;
+            }
+        }
+        for (int i = 1; i < m; i++) {
+            for (int j = 1; j < n; j++) {
+                if (matrix[i][j] == 0) {
+                    matrix[i][0] = matrix[0][j] = 0;
+                }
+            }
+        }
+        for (int i = 1; i < m; i++) {
+            for (int j = 1; j < n; j++) {
+                if (matrix[i][0] == 0 || matrix[0][j] == 0) {
+                    matrix[i][j] = 0;
+                }
+            }
+        }
+        if (flagCol0) {
+            for (int i = 0; i < m; i++) {
+                matrix[i][0] = 0;
+            }
+        }
+        if (flagRow0) {
+            for (int j = 0; j < n; j++) {
+                matrix[0][j] = 0;
+            }
+        }
+    }
+~~~
+
+
+
+##### 解法三：使用一个标记变量
+
+~~~java
+public void setZeroes(int[][] matrix) {
+        int m = matrix.length, n = matrix[0].length;
+        boolean flagCol0 = false;
+        for (int i = 0; i < m; i++) {
+            if (matrix[i][0] == 0) {
+                flagCol0 = true;
+            }
+            for (int j = 1; j < n; j++) {
+                if (matrix[i][j] == 0) {
+                    matrix[i][0] = matrix[0][j] = 0;
+                }
+            }
+        }
+        for (int i = m - 1; i >= 0; i--) {
+            for (int j = 1; j < n; j++) {
+                if (matrix[i][0] == 0 || matrix[0][j] == 0) {
+                    matrix[i][j] = 0;
+                }
+            }
+            if (flagCol0) {
+                matrix[i][0] = 0;
+            }
+        }
+    }
+~~~
+
+
+
+#### [223. 矩形面积](https://leetcode.cn/problems/rectangle-area/)
+
+难度中等195
+
+给你 **二维** 平面上两个 **由直线构成且边与坐标轴平行/垂直** 的矩形，请你计算并返回两个矩形覆盖的总面积。
+
+每个矩形由其 **左下** 顶点和 **右上** 顶点坐标表示：
+
+- 第一个矩形由其左下顶点 `(ax1, ay1)` 和右上顶点 `(ax2, ay2)` 定义。
+- 第二个矩形由其左下顶点 `(bx1, by1)` 和右上顶点 `(bx2, by2)` 定义。
+
+ 
+
+**示例 1：**
+
+![Rectangle Area](https://assets.leetcode.com/uploads/2021/05/08/rectangle-plane.png)
+
+```
+输入：ax1 = -3, ay1 = 0, ax2 = 3, ay2 = 4, bx1 = 0, by1 = -1, bx2 = 9, by2 = 2
+输出：45
+```
+
+**示例 2：**
+
+```
+输入：ax1 = -2, ay1 = -2, ax2 = 2, ay2 = 2, bx1 = -2, by1 = -2, bx2 = 2, by2 = 2
+输出：16
+```
+
+ 
+
+**提示：**
+
+- `-104 <= ax1, ay1, ax2, ay2, bx1, by1, bx2, by2 <= 104`
+
+通过次数49,953
+
+提交次数94,065
+
+
+
+##### 常规解法
+
+矩阵相交，矩阵的左右或者上下坐标就是将这些坐标进行排序，取得中间两位作为边界。
+
+~~~java
+ /**
+     *计算重叠的面积
+     */
+    int computeOverlapArea(int ax1, int ay1, int ax2, int ay2, int bx1, int by1, int bx2, int by2){
+          //判断是否有交叉面积
+        if(ay1>=by2||ay2<=by1||ax2<=bx1||ax1>=bx2){
+            return 0;
+        }
+        int[] row=new int[]{ax1,ax2,bx1,bx2};
+        Arrays.sort(row);
+        int[] col=new int[]{ay1,ay2,by1,by2};
+        Arrays.sort(col);
+        return (col[2]-col[1])*(row[2]-row[1]);
+    }
+    public int computeArea(int ax1, int ay1, int ax2, int ay2, int bx1, int by1, int bx2, int by2) {
+        int sumArea=(ay2-ay1)*(ax2-ax1)+(by2-by1)*(bx2-bx1);
+        int overlapArea=computeOverlapArea(ax1,ay1,ax2,ay2,bx1,by1,bx2,by2);
+        return sumArea-overlapArea;
+    }
+~~~
+
+
+
+##### 官方解答
+
+~~~java
+ public int computeArea(int ax1, int ay1, int ax2, int ay2, int bx1, int by1, int bx2, int by2) {
+        int area1 = (ax2 - ax1) * (ay2 - ay1), area2 = (bx2 - bx1) * (by2 - by1);
+        int overlapWidth = Math.min(ax2, bx2) - Math.max(ax1, bx1), overlapHeight = Math.min(ay2, by2) - Math.max(ay1, by1);
+        int overlapArea = Math.max(overlapWidth, 0) * Math.max(overlapHeight, 0);
+        return area1 + area2 - overlapArea;
+    }
+~~~
+
+
+
+
+
+#### [96. 不同的二叉搜索树](https://leetcode.cn/problems/unique-binary-search-trees/)
+
+难度中等1879
+
+给你一个整数 `n` ，求恰由 `n` 个节点组成且节点值从 `1` 到 `n` 互不相同的 **二叉搜索树** 有多少种？返回满足题意的二叉搜索树的种数。
+
+ 
+
+**示例 1：**
+
+![img](https://assets.leetcode.com/uploads/2021/01/18/uniquebstn3.jpg)
+
+```
+输入：n = 3
+输出：5
+```
+
+**示例 2：**
+
+```
+输入：n = 1
+输出：1
+```
+
+ 
+
+**提示：**
+
+- `1 <= n <= 19`
+
+通过次数278,408
+
+提交次数394,423
+
+##### 我的解法：动态规划
+
+二叉搜索树的数量和具体的数值没有关系，只和数值的数量有关，定义$dp[n]$表示$n$个数值不同二叉搜索树数量，那么子问题是以为数值$1,2,3...n$为根节点的二叉搜索树之和。
+$$
+dp[n]=\sum_{i=1}^{n}dp[i-1]*dp[n-i]
+$$
+
+
+~~~java
+ public int numTrees(int n) {
+        //动态规划，递推公式为dp[n]=dp[i-1]*dp[n-i] (i从1到n)
+        int[] dp=new int[n+1];
+        dp[0]=1;
+        for(int i=1;i<=n;i++){
+            for(int j=1;j<=i;j++){
+                dp[i]+=dp[j-1]*dp[i-j];
+            }
+        }
+        return dp[n];
+    }
+~~~
+
+
+
+#### [119. 杨辉三角 II](https://leetcode.cn/problems/pascals-triangle-ii/)
+
+难度简单414
+
+给定一个非负索引 `rowIndex`，返回「杨辉三角」的第 `rowIndex` 行。
+
+在「杨辉三角」中，每个数是它左上方和右上方的数的和。
+
+![img](https://pic.leetcode-cn.com/1626927345-DZmfxB-PascalTriangleAnimated2.gif)
+
+ 
+
+**示例 1:**
+
+```
+输入: rowIndex = 3
+输出: [1,3,3,1]
+```
+
+**示例 2:**
+
+```
+输入: rowIndex = 0
+输出: [1]
+```
+
+**示例 3:**
+
+```
+输入: rowIndex = 1
+输出: [1,1]
+```
+
+ 
+
+**提示:**
+
+- `0 <= rowIndex <= 33`
+
+ 
+
+**进阶：**
+
+你可以优化你的算法到 `*O*(*rowIndex*)` 空间复杂度吗？
+
+通过次数217,818
+
+提交次数317,325
+
+##### 基本解法
+
+~~~java
+ public List<Integer> getRow(int rowIndex) {
+        int[] preRow=new int[]{1};
+        int[] nextRow=preRow;
+        int i=0;
+        while(i<rowIndex){
+            nextRow=new int[preRow.length+1];
+            for(int j=0;j<=(nextRow.length-1)/2;j++){
+                if(j==0){
+                    nextRow[j]=1;
+                    nextRow[nextRow.length-1]=1;
+                    continue;
+                }
+                nextRow[j]=preRow[j-1]+preRow[j];
+                nextRow[nextRow.length-1-j]=nextRow[j];
+            }
+            preRow=nextRow;
+            i++;
+        }
+        return Arrays.stream(nextRow).boxed().collect(Collectors.toList());
+    }
+~~~
+
+##### 官方解法
+
+~~~java
+ public List<Integer> getRow(int rowIndex) {
+        List<Integer> row = new ArrayList<Integer>();
+        row.add(1);
+        for (int i = 1; i <= rowIndex; ++i) {
+            row.add(0);
+            for (int j = i; j > 0; --j) {
+                row.set(j, row.get(j) + row.get(j - 1));
+            }
+        }
+        return row;
+    }
+~~~
+
+
+
+#### [44. 通配符匹配](https://leetcode.cn/problems/wildcard-matching/)
+
+难度困难924
+
+给定一个字符串 (`s`) 和一个字符模式 (`p`) ，实现一个支持 `'?'` 和 `'*'` 的通配符匹配。
+
+```
+'?' 可以匹配任何单个字符。
+'*' 可以匹配任意字符串（包括空字符串）。
+```
+
+两个字符串**完全匹配**才算匹配成功。
+
+**说明:**
+
+- `s` 可能为空，且只包含从 `a-z` 的小写字母。
+- `p` 可能为空，且只包含从 `a-z` 的小写字母，以及字符 `?` 和 `*`。
+
+**示例 1:**
+
+```
+输入:
+s = "aa"
+p = "a"
+输出: false
+解释: "a" 无法匹配 "aa" 整个字符串。
+```
+
+**示例 2:**
+
+```
+输入:
+s = "aa"
+p = "*"
+输出: true
+解释: '*' 可以匹配任意字符串。
+```
+
+**示例 3:**
+
+```
+输入:
+s = "cb"
+p = "?a"
+输出: false
+解释: '?' 可以匹配 'c', 但第二个 'a' 无法匹配 'b'。
+```
+
+**示例 4:**
+
+```
+输入:
+s = "adceb"
+p = "*a*b"
+输出: true
+解释: 第一个 '*' 可以匹配空字符串, 第二个 '*' 可以匹配字符串 "dce".
+```
+
+**示例 5:**
+
+```
+输入:
+s = "acdcb"
+p = "a*c?b"
+输出: false
+```
+
+通过次数114,972
+
+提交次数343,043
+
+##### 失败尝试：递归
+
+这种解法会导致超时
+
+~~~java
+	//递归方法调用会超时
+    boolean regexMatch(char[] arr1,int i,char[] arr2,int j){
+        if(i==arr1.length||j==arr2.length){
+            if(j!=arr2.length){
+                if(arr2[j]=='*'){
+                    return regexMatch(arr1,i,arr2,j+1);
+                }
+            }
+            return i==arr1.length&&j==arr2.length;
+        }
+        char a1=arr1[i];
+        char a2=arr2[j];
+        if(a2=='*'){
+            //分别表示跳过，多次匹配，只匹配一次
+            return regexMatch(arr1,i,arr2,j+1)||regexMatch(arr1,i+1,arr2,j)||
+                regexMatch(arr1,i+1,arr2,j+1);
+        }
+        if(a1==a2||a2=='?'){
+            return regexMatch(arr1,i+1,arr2,j+1);
+        }
+        return false;
+    }
+~~~
+
+
+
+##### 我的解法：dp
+
+实现逻辑步骤比较繁琐，没有使用额外的空余边界，导致逻辑处理比较麻烦。
+
+~~~java
+ public boolean isMatch(String s, String p) {
+        boolean[][] dp=new boolean[p.length()][s.length()];
+        if(s.length()==0||p.length()==0){
+           if(s.length()==0){
+               // "***"和""匹配场景
+               boolean allDot=true;
+               for(char ch:p.toCharArray()){
+                   if(ch!='*'){
+                       allDot=false;
+                   }
+               }
+               return allDot;
+           }
+           return s.length()==0&&p.length()==0;
+        }
+        int i,j;
+        for(i=0;i<p.length();i++){
+            char cp=p.charAt(i);
+            for(j=0;j<s.length();j++){
+                char cs=s.charAt(j);
+                boolean matched=cs==cp||cp=='?'||cp=='*';
+                //边界条件
+                if(i==0||j==0){
+                    if(i==0&&j==0){
+                        dp[i][j]=matched;
+                    }else if(i==0){
+                        dp[i][j]=cp=='*'&&dp[i][j-1];
+                    }else{
+                        //j==0情况下
+                        if(cp=='*'){
+                            if(dp[i-1][j]){
+                                dp[i][j]=true;
+                            }
+                        }
+                        //*a和a的匹配情景,也可能会出现?*a和a的匹配场景
+                        if(!dp[i-1][j]||!matched){
+                            dp[i][j]=false;
+                        }else{
+                            //matched的情况下，检查前面i-1个字符是否都是*
+                            boolean allAste=true;
+                            for(int k=0;k<=i-1;k++){
+                                if(p.charAt(k)!='*'){
+                                    allAste=false;
+                                    break;
+                                }
+                            }
+                            if(allAste){
+                                dp[i][j]=true;
+                            }
+                        }
+                    }
+                }else{
+                    if(cp=='*'){
+                        if(dp[i][j-1]||dp[i-1][j]){
+                            dp[i][j]=true;
+                        }
+                    }
+                    if(dp[i-1][j-1]&&matched){
+                        dp[i][j]=true;
+                    }
+                }
+            }
+        }
+        return dp[p.length()-1][s.length()-1];
+    }
+~~~
+
+
+
+##### 解法二：官方题解
+
+对于*的匹配子问题$dp[i-1][j]$其实内部已经包含了$dp[i-1][j-1]$。
+
+~~~ 
+public boolean isMatch(String s, String p) {
+        int m = s.length();
+        int n = p.length();
+        boolean[][] dp = new boolean[m + 1][n + 1];
+        dp[0][0] = true;
+        for (int i = 1; i <= n; ++i) {
+            if (p.charAt(i - 1) == '*') {
+                dp[0][i] = true;
+            } else {
+                break;
+            }
+        }
+        for (int i = 1; i <= m; ++i) {
+            for (int j = 1; j <= n; ++j) {
+                if (p.charAt(j - 1) == '*') {
+                    dp[i][j] = dp[i][j - 1] || dp[i - 1][j];
+                } else if (p.charAt(j - 1) == '?' || s.charAt(i - 1) == p.charAt(j - 1)) {
+                    dp[i][j] = dp[i - 1][j - 1];
+                }
+            }
+        }
+        return dp[m][n];
+    }
+
+~~~
+
+
+
+#### [242. 有效的字母异位词](https://leetcode.cn/problems/valid-anagram/)
+
+难度简单633
+
+给定两个字符串 `*s*` 和 `*t*` ，编写一个函数来判断 `*t*` 是否是 `*s*` 的字母异位词。
+
+**注意：**若 `*s*` 和 `*t*` 中每个字符出现的次数都相同，则称 `*s*` 和 `*t*` 互为字母异位词。
+
+ 
+
+**示例 1:**
+
+```
+输入: s = "anagram", t = "nagaram"
+输出: true
+```
+
+**示例 2:**
+
+```
+输入: s = "rat", t = "car"
+输出: false
+```
+
+ 
+
+**提示:**
+
+- `1 <= s.length, t.length <= 5 * 104`
+- `s` 和 `t` 仅包含小写字母
+
+ 
+
+**进阶:** 如果输入字符串包含 unicode 字符怎么办？你能否调整你的解法来应对这种情况？
+
+通过次数464,905
+
+提交次数709,094
+
+##### 直接解法
+
+~~~java
+ public boolean isAnagram(String s, String t) {
+        if(s.length()!=t.length()){
+            return false;
+        }
+        int[] count=new int[26];
+        for(char ch:s.toCharArray()){
+            count[ch-'a']++;
+        }
+        for(char ch:t.toCharArray()){
+            count[ch-'a']--;
+        }
+        for(int cnt:count){
+            if(cnt!=0){
+                return false;
+            }
+        }
+        return true;
+    }
+~~~
+
+
+
+#### [260. 只出现一次的数字 III](https://leetcode.cn/problems/single-number-iii/)
+
+难度中等636
+
+给定一个整数数组 `nums`，其中恰好有两个元素只出现一次，其余所有元素均出现两次。 找出只出现一次的那两个元素。你可以按 **任意顺序** 返回答案。
+
+ 
+
+**进阶：**你的算法应该具有线性时间复杂度。你能否仅使用常数空间复杂度来实现？
+
+ 
+
+**示例 1：**
+
+```
+输入：nums = [1,2,1,3,2,5]
+输出：[3,5]
+解释：[5, 3] 也是有效的答案。
+```
+
+**示例 2：**
+
+```
+输入：nums = [-1,0]
+输出：[-1,0]
+```
+
+**示例 3：**
+
+```
+输入：nums = [0,1]
+输出：[1,0]
+```
+
+**提示：**
+
+- `2 <= nums.length <= 3 * 104`
+- `-231 <= nums[i] <= 231 - 1`
+- 除两个只出现一次的整数外，`nums` 中的其他数字都出现两次
+
+通过次数96,214
+
+提交次数131,159
+
+##### 集合方式
+
+~~~java
+public int[] singleNumber(int[] nums) {
+        Set<Integer> visited=new HashSet();
+        for(int num:nums){
+            if(visited.contains(num)){
+                visited.remove(num);
+            }else{
+                visited.add(num);
+            }
+        }
+        return visited.stream().mapToInt(Integer::intValue).toArray();
+    }
+~~~
+
+
+
+##### 解法二：异或运算
+
+~~~java
+ public int[] singleNumber(int[] nums) {
+        int xorsum = 0;
+        for (int num : nums) {
+            xorsum ^= num;
+        }
+        // 防止溢出
+        int lsb = (xorsum == Integer.MIN_VALUE ? xorsum : xorsum & (-xorsum));
+        int type1 = 0, type2 = 0;
+        for (int num : nums) {
+            if ((num & lsb) != 0) {
+                type1 ^= num;
+            } else {
+                type2 ^= num;
+            }
+        }
+        return new int[]{type1, type2};
+    }
+~~~
+
+
+
+#### [58. 最后一个单词的长度](https://leetcode.cn/problems/length-of-last-word/)
+
+难度简单480
+
+给你一个字符串 `s`，由若干单词组成，单词前后用一些空格字符隔开。返回字符串中 **最后一个** 单词的长度。
+
+**单词** 是指仅由字母组成、不包含任何空格字符的最大子字符串。
+
+ 
+
+**示例 1：**
+
+```
+输入：s = "Hello World"
+输出：5
+解释：最后一个单词是“World”，长度为5。
+```
+
+**示例 2：**
+
+```
+输入：s = "   fly me   to   the moon  "
+输出：4
+解释：最后一个单词是“moon”，长度为4。
+```
+
+**示例 3：**
+
+```
+输入：s = "luffy is still joyboy"
+输出：6
+解释：最后一个单词是长度为6的“joyboy”。
+```
+
+ 
+
+**提示：**
+
+- `1 <= s.length <= 104`
+- `s` 仅有英文字母和空格 `' '` 组成
+- `s` 中至少存在一个单词
+
+通过次数344,880
+
+提交次数843,728
+
+###### 基本解法
+
+~~~java
+ public int lengthOfLastWord(String s) {
+        int left ,right=s.length()-1;
+        while(s.charAt(right)==' '){
+            right--;
+        }
+        left=right;
+        while(left-1>=0&&s.charAt(left-1)!=' '){
+            left--;
+        }
+        return right-left+1;
+    }
+~~~
+
+
+
+#### [77. 组合](https://leetcode.cn/problems/combinations/)
+
+难度中等1072
+
+给定两个整数 `n` 和 `k`，返回范围 `[1, n]` 中所有可能的 `k` 个数的组合。
+
+你可以按 **任何顺序** 返回答案。
+
+ 
+
+**示例 1：**
+
+```
+输入：n = 4, k = 2
+输出：
+[
+  [2,4],
+  [3,4],
+  [2,3],
+  [1,2],
+  [1,3],
+  [1,4],
+]
+```
+
+**示例 2：**
+
+```
+输入：n = 1, k = 1
+输出：[[1]]
+```
+
+ 
+
+**提示：**
+
+- `1 <= n <= 20`
+- `1 <= k <= n`
+
+通过次数397,193
+
+提交次数514,596
+
+##### 常规递归解法
+
+~~~java
+ List<List<Integer>> ansList=new ArrayList();
+    void combination(int start,int n,int k,List<Integer> ans){
+        if(ans.size()==k){
+            ansList.add(new ArrayList(ans));
+            return;
+        }
+        //减枝，剩余的数据凑不够k个数
+        if(n-start+1+ans.size()<k){
+            return;
+        }
+        //选择start
+        ans.add(start);
+        combination(start+1,n,k,ans);
+        ans.remove(ans.size()-1);
+        //不选择start
+        combination(start+1,n,k,ans);
+    }
+    public List<List<Integer>> combine(int n, int k) {
+        combination(1,n,k,new ArrayList());
+        return ansList;
+    }
+~~~
+
+
+
+#### [90. 子集 II](https://leetcode.cn/problems/subsets-ii/)
+
+难度中等897
+
+给你一个整数数组 `nums` ，其中可能包含重复元素，请你返回该数组所有可能的子集（幂集）。
+
+解集 **不能** 包含重复的子集。返回的解集中，子集可以按 **任意顺序** 排列。
+
+ 
+
+**示例 1：**
+
+```
+输入：nums = [1,2,2]
+输出：[[],[1],[1,2],[1,2,2],[2],[2,2]]
+```
+
+**示例 2：**
+
+```
+输入：nums = [0]
+输出：[[],[0]]
+```
+
+ 
+
+**提示：**
+
+- `1 <= nums.length <= 10`
+- `-10 <= nums[i] <= 10`
+
+通过次数227,645
+
+提交次数357,976
+
+~~~java
+	List<List<Integer>> ansList=new ArrayList();
+    void subset(int[] nums,int startIndex,List<Integer> ans,int k){
+        if(ans.size()==k){
+            ansList.add(new ArrayList(ans));
+            return;
+        }
+        int remain=k-ans.size();
+        if(remain>nums.length-startIndex){
+            return;
+        }
+        for(int i=startIndex;i<nums.length;i++){
+            if(i>startIndex&&nums[i]==nums[i-1]){
+                continue;
+            }
+            ans.add(nums[i]);
+            subset(nums,i+1,ans,k);
+            ans.remove(ans.size()-1);
+        }
+    }
+    public List<List<Integer>> subsetsWithDup(int[] nums) {
+        Arrays.sort(nums);
+        ansList.add(new ArrayList());
+        for(int i=1;i<=nums.length;i++){
+            subset(nums,0,new ArrayList(),i);
+        }
+        return ansList;
+    }
+~~~
+
+
+
+#### [86. 分隔链表](https://leetcode.cn/problems/partition-list/)
+
+难度中等604
+
+给你一个链表的头节点 `head` 和一个特定值 `x` ，请你对链表进行分隔，使得所有 **小于** `x` 的节点都出现在 **大于或等于** `x` 的节点之前。
+
+你应当 **保留** 两个分区中每个节点的初始相对位置。
+
+ 
+
+**示例 1：**
+
+![img](https://assets.leetcode.com/uploads/2021/01/04/partition.jpg)
+
+```
+输入：head = [1,4,3,2,5,2], x = 3
+输出：[1,2,2,4,3,5]
+```
+
+**示例 2：**
+
+```
+输入：head = [2,1], x = 2
+输出：[1,2]
+```
+
+ 
+
+**提示：**
+
+- 链表中节点的数目在范围 `[0, 200]` 内
+- `-100 <= Node.val <= 100`
+- `-200 <= x <= 200`
+
+通过次数166,547
+
+提交次数262,116
+
+##### 直接遍历
+
+~~~java
+public ListNode partition(ListNode head, int x) {
+        if(head==null||head.next==null){
+            return head;
+        }
+        ListNode lt=new ListNode();
+        ListNode d1=new ListNode();
+        d1.next=head;
+        ListNode p1=d1;
+        ListNode p2=lt;
+        while(p1.next!=null){
+            if(p1.next.val<x){
+                p2.next=p1.next;
+                p1.next=p1.next.next;
+                p2=p2.next;
+                p2.next=null;
+                continue;
+            }
+            p1=p1.next;
+        }
+        p2.next=d1.next;
+        return lt.next;
+    }
+~~~
+
+
+
+#### [30. 串联所有单词的子串](https://leetcode.cn/problems/substring-with-concatenation-of-all-words/)
+
+难度困难791
+
+给定一个字符串 `s` 和一些 **长度相同** 的单词 `words` **。**找出 `s` 中恰好可以由 `words` 中所有单词串联形成的子串的起始位置。
+
+注意子串要与 `words` 中的单词完全匹配，**中间不能有其他字符** ，但不需要考虑 `words` 中单词串联的顺序。
+
+ 
+
+**示例 1：**
+
+```
+输入：s = "barfoothefoobarman", words = ["foo","bar"]
+输出：[0,9]
+解释：
+从索引 0 和 9 开始的子串分别是 "barfoo" 和 "foobar" 。
+输出的顺序不重要, [9,0] 也是有效答案。
+```
+
+**示例 2：**
+
+```
+输入：s = "wordgoodgoodgoodbestword", words = ["word","good","best","word"]
+输出：[]
+```
+
+**示例 3：**
+
+```
+输入：s = "barfoofoobarthefoobarman", words = ["bar","foo","the"]
+输出：[6,9,12]
+```
+
+ 
+
+**提示：**
+
+- `1 <= s.length <= 104`
+- `s` 由小写英文字母组成
+- `1 <= words.length <= 5000`
+- `1 <= words[i].length <= 30`
+- `words[i]` 由小写英文字母组成
+
+通过次数133,862
+
+提交次数340,594
+
+##### 递归剪枝优化
+
+~~~java
+ int[] count(String[] words){
+        int[] arr=new int[26];
+        for(String word:words){
+            for(int i=0;i<word.length();i++){
+                arr[word.charAt(i)-'a']++;
+            }
+        }
+        return arr;
+    }
+    boolean equalArr(int[] arr1,int[] arr2){
+        if(arr1.length!=arr2.length){
+            return false;
+        }
+        for(int i=0;i<arr1.length;i++){
+            if(arr1[i]!=arr2[i]){
+                return false;
+            }
+        }
+        return true;
+    }
+    boolean containsAllWord(String s,int startIndex,Map<String,Integer> countMap,int wl){
+        if(startIndex==s.length()){
+            return true;
+        }
+        String substr=s.substring(startIndex,startIndex+wl);
+        if(!countMap.containsKey(substr)||countMap.get(substr)==0){
+            return false;
+        }
+        countMap.put(substr,countMap.get(substr)-1);
+        boolean containsAll=containsAllWord(s,startIndex+wl,countMap,wl);
+        countMap.put(substr,countMap.get(substr)+1);
+        return containsAll;
+    }
+    public List<Integer> findSubstring(String s, String[] words) {
+        int wl=words[0].length();
+        int totalLength=wl*words.length;
+        int[] wlArr=count(words);
+        Map<String,Integer> countMap=new HashMap();
+        for(String word:words){
+            countMap.put(word,countMap.getOrDefault(word,0)+1);
+        }
+        List<Integer> ans=new ArrayList();
+        for(int i=0;i<s.length()-totalLength+1;i++){
+            String substr=s.substring(i,i+totalLength);
+            int[] subArr=count(new String[]{substr});
+            if(!equalArr(wlArr,subArr)){
+                continue;
+            }
+            if(containsAllWord(substr,0,countMap,wl)){
+                ans.add(i);
+            }
+        }
+        return ans;
+    }
+~~~
+
+
+
+#### [剑指 Offer 09. 用两个栈实现队列](https://leetcode.cn/problems/yong-liang-ge-zhan-shi-xian-dui-lie-lcof/)
+
+难度简单589
+
+用两个栈实现一个队列。队列的声明如下，请实现它的两个函数 `appendTail` 和 `deleteHead` ，分别完成在队列尾部插入整数和在队列头部删除整数的功能。(若队列中没有元素，`deleteHead` 操作返回 -1 )
+
+ 
+
+**示例 1：**
+
+```
+输入：
+["CQueue","appendTail","deleteHead","deleteHead"]
+[[],[3],[],[]]
+输出：[null,null,3,-1]
+```
+
+**示例 2：**
+
+```
+输入：
+["CQueue","deleteHead","appendTail","appendTail","deleteHead","deleteHead"]
+[[],[],[5],[2],[],[]]
+输出：[null,-1,null,null,5,2]
+```
+
+**提示：**
+
+- `1 <= values <= 10000`
+- `最多会对 appendTail、deleteHead 进行 10000 次调用`
+
+通过次数455,344
+
+提交次数643,511
+
+##### 我的答案
+
+比较简单，栈和队列的区别就是栈只能单向操作，并且和队列的出入顺序相反，根据这个特性可知，栈如果出栈和入站两次的话，那么就和队列的顺序一致了。
+
+~~~java
+    
+	//s1就是两次入栈的数值，顺序和队列相同
+	Stack<Integer> s1=new Stack();
+    Stack<Integer> s2=new Stack();
+    public CQueue() {
+
+    }
+    
+    public void appendTail(int value) {
+        s1.push(value);
+    }
+    
+    public int deleteHead() {
+        if(s2.isEmpty()){
+            while(!s1.isEmpty()){
+                s2.push(s1.pop());
+            }
+        }
+        return s2.isEmpty()?-1:s2.pop();
+    }
+~~~
+
+
+
+#### [52. N皇后 II](https://leetcode.cn/problems/n-queens-ii/)
+
+难度困难381
+
+**n 皇后问题** 研究的是如何将 `n` 个皇后放置在 `n × n` 的棋盘上，并且使皇后彼此之间不能相互攻击。
+
+给你一个整数 `n` ，返回 **n 皇后问题** 不同的解决方案的数量。
+
+ 
+
+**示例 1：**
+
+![img](https://assets.leetcode.com/uploads/2020/11/13/queens.jpg)
+
+```
+输入：n = 4
+输出：2
+解释：如上图所示，4 皇后问题存在两个不同的解法。
+```
+
+**示例 2：**
+
+```
+输入：n = 1
+输出：1
+```
+
+ 
+
+**提示：**
+
+- `1 <= n <= 9`
+
+通过次数99,520
+
+提交次数121,034
+
+##### 我的解法
+
+n皇后问题主要是回溯和减枝方法的结合，皇后位置冲突有三种方式：
+
+- 行冲突：每一行只能有一个皇后，遍历的时候可以手动控制
+- 列冲突：和已有的皇后位置进行比较，排除掉列冲突的
+- 对角冲突：两个皇后左边斜率是45或者135
+
+~~~java
+int backtrace(boolean[][] visited,int lineIndex,List<int[]> path){
+        if(lineIndex==visited.length){
+            return 1;
+        }
+        int ans=0;
+        for(int j=0;j<visited[lineIndex].length;j++){
+            boolean conflict=false;
+            for(int[] item:path){
+                //检查列冲突
+                if(item[1]==j){
+                    conflict=true;
+                    break;
+                }
+                //检查对角冲突
+                if(lineIndex+j==item[0]+item[1]||lineIndex+item[1]==item[0]+j){
+                    conflict=true;
+                    break;
+                }
+            }
+            if(conflict){
+                continue;
+            }
+            visited[lineIndex][j]=true;
+            path.add(new int[]{lineIndex,j});
+            ans+=backtrace(visited,lineIndex+1,path);
+            visited[lineIndex][j]=false;
+            path.remove(path.size()-1);
+        }
+        return ans;
+    }
+    public int totalNQueens(int n) {
+        boolean[][] visited=new boolean[n][n];
+        return backtrace(visited,0,new ArrayList());
+    }
+~~~
+
+
+
+#### [59. 螺旋矩阵 II](https://leetcode.cn/problems/spiral-matrix-ii/)
+
+难度中等774
+
+给你一个正整数 `n` ，生成一个包含 `1` 到 `n2` 所有元素，且元素按顺时针顺序螺旋排列的 `n x n` 正方形矩阵 `matrix` 。
+
+ 
+
+**示例 1：**
+
+![img](https://assets.leetcode.com/uploads/2020/11/13/spiraln.jpg)
+
+```
+输入：n = 3
+输出：[[1,2,3],[8,9,4],[7,6,5]]
+```
+
+**示例 2：**
+
+```
+输入：n = 1
+输出：[[1]]
+```
+
+ 
+
+**提示：**
+
+- `1 <= n <= 20`
+
+通过次数226,191
+
+提交次数298,561
+
+##### 常规解法
+
+螺旋矩阵的遍历顺序是固定的，依次为左->右，上->下，右->左，下->上。遍历过程中记住遍历的位置，一旦到达边界或者到达重复位置，那么调整方向。
+
+~~~java
+public int[][] generateMatrix(int n) {
+        int[][] ans=new int[n][n];
+        int i=0,j=-1;
+        int[][] directions={{0,1},{1,0},{0,-1},{-1,0}};
+        boolean[][] visited=new boolean[n][n];
+        int index=0;
+        int k=1;
+        while(k<=n*n){
+            int[] dir=directions[index];
+            int x=i+dir[0];
+            int y=j+dir[1];
+            while(k<=n*n&& x>=0&&x<n&&y>=0&&y<n&&!visited[x][y]){
+                ans[x][y]=k;
+                visited[x][y]=true;
+                i=x;
+                j=y;
+                k++;
+                x+=dir[0];
+                y+=dir[1];
+            }
+            index=(index+1)%directions.length;
+        }
+        return ans;
+    }
+~~~
+
+
+
+##### 官方题解
+
+~~~java
+ public int[][] generateMatrix(int n) {
+        int maxNum = n * n;
+        int curNum = 1;
+        int[][] matrix = new int[n][n];
+        int row = 0, column = 0;
+        int[][] directions = {{0, 1}, {1, 0}, {0, -1}, {-1, 0}}; // 右下左上
+        int directionIndex = 0;
+        while (curNum <= maxNum) {
+            matrix[row][column] = curNum;
+            curNum++;
+            int nextRow = row + directions[directionIndex][0], nextColumn = column + directions[directionIndex][1];
+            if (nextRow < 0 || nextRow >= n || nextColumn < 0 || nextColumn >= n || matrix[nextRow][nextColumn] != 0) {
+                directionIndex = (directionIndex + 1) % 4; // 顺时针旋转至下一个方向
+            }
+            row = row + directions[directionIndex][0];
+            column = column + directions[directionIndex][1];
+        }
+        return matrix;
+}        
+~~~
+
+
+
+#### [80. 删除有序数组中的重复项 II](https://leetcode.cn/problems/remove-duplicates-from-sorted-array-ii/)
+
+难度中等715
+
+给你一个有序数组 `nums` ，请你**[ 原地](http://baike.baidu.com/item/原地算法)** 删除重复出现的元素，使得出现次数超过两次的元素**只出现两次** ，返回删除后数组的新长度。
+
+不要使用额外的数组空间，你必须在 **[原地 ](https://baike.baidu.com/item/原地算法)修改输入数组** 并在使用 O(1) 额外空间的条件下完成。
+
+ 
+
+**说明：**
+
+为什么返回数值是整数，但输出的答案是数组呢？
+
+请注意，输入数组是以**「引用」**方式传递的，这意味着在函数里修改输入数组对于调用者是可见的。
+
+你可以想象内部操作如下:
+
+```
+// nums 是以“引用”方式传递的。也就是说，不对实参做任何拷贝
+int len = removeDuplicates(nums);
+
+// 在函数里修改输入数组对于调用者是可见的。
+// 根据你的函数返回的长度, 它会打印出数组中 该长度范围内 的所有元素。
+for (int i = 0; i < len; i++) {
+    print(nums[i]);
+}
+```
+
+ 
+
+**示例 1：**
+
+```
+输入：nums = [1,1,1,2,2,3]
+输出：5, nums = [1,1,2,2,3]
+解释：函数应返回新长度 length = 5, 并且原数组的前五个元素被修改为 1, 1, 2, 2, 3 。 不需要考虑数组中超出新长度后面的元素。
+```
+
+**示例 2：**
+
+```
+输入：nums = [0,0,1,1,1,1,2,3,3]
+输出：7, nums = [0,0,1,1,2,3,3]
+解释：函数应返回新长度 length = 7, 并且原数组的前五个元素被修改为 0, 0, 1, 1, 2, 3, 3 。 不需要考虑数组中超出新长度后面的元素。
+```
+
+ 
+
+**提示：**
+
+- `1 <= nums.length <= 3 * 104`
+- `-104 <= nums[i] <= 104`
+- `nums` 已按升序排列
+
+通过次数194,469
+
+提交次数313,678
+
+##### 双指针
+
+第一次碰到数值时，直接添加。比如数组$1,2,2,2,3,3,3$，碰到坐标$1$对应的$2$或者碰到坐标$4$对应的$3$时，直接添加。
+
+~~~java
+public int removeDuplicates(int[] nums) {
+        //双指针
+        int slow=0,fast=0;
+        int count=0;
+        for(;fast<nums.length;){
+            if(fast==0){
+                count++;
+                slow=fast;
+                fast++;
+                continue;
+            }
+            while(fast<nums.length&&nums[fast]==nums[fast-1]){
+                fast++;
+                count++;
+            }
+            if(count==1){
+                nums[++slow]=nums[fast];
+                fast++;
+            }else{
+                nums[++slow]=nums[fast-1];
+                count=1;
+            }
+        }
+        return slow+1;
+    }
+~~~
+
+
+
+##### 官方题解
+
+~~~java
+public int removeDuplicates(int[] nums) {
+        int n = nums.length;
+        if (n <= 2) {
+            return n;
+        }
+        int slow = 2, fast = 2;
+        while (fast < n) {
+            if (nums[slow - 2] != nums[fast]) {
+                nums[slow] = nums[fast];
+                ++slow;
+            }
+            ++fast;
+        }
+        return slow;
+    }
+~~~
+
+
+
+#### [91. 解码方法](https://leetcode.cn/problems/decode-ways/)
+
+难度中等1223
+
+一条包含字母 `A-Z` 的消息通过以下映射进行了 **编码** ：
+
+```
+'A' -> "1"
+'B' -> "2"
+...
+'Z' -> "26"
+```
+
+要 **解码** 已编码的消息，所有数字必须基于上述映射的方法，反向映射回字母（可能有多种方法）。例如，`"11106"` 可以映射为：
+
+- `"AAJF"` ，将消息分组为 `(1 1 10 6)`
+- `"KJF"` ，将消息分组为 `(11 10 6)`
+
+注意，消息不能分组为 `(1 11 06)` ，因为 `"06"` 不能映射为 `"F"` ，这是由于 `"6"` 和 `"06"` 在映射中并不等价。
+
+给你一个只含数字的 **非空** 字符串 `s` ，请计算并返回 **解码** 方法的 **总数** 。
+
+题目数据保证答案肯定是一个 **32 位** 的整数。
+
+ 
+
+**示例 1：**
+
+```
+输入：s = "12"
+输出：2
+解释：它可以解码为 "AB"（1 2）或者 "L"（12）。
+```
+
+**示例 2：**
+
+```
+输入：s = "226"
+输出：3
+解释：它可以解码为 "BZ" (2 26), "VF" (22 6), 或者 "BBF" (2 2 6) 。
+```
+
+**示例 3：**
+
+```
+输入：s = "0"
+输出：0
+解释：没有字符映射到以 0 开头的数字。
+含有 0 的有效映射是 'J' -> "10" 和 'T'-> "20" 。
+由于没有字符，因此没有有效的方法对此进行解码，因为所有数字都需要映射。
+```
+
+ 
+
+**提示：**
+
+- `1 <= s.length <= 100`
+- `s` 只包含数字，并且可能包含前导零。
+
+通过次数230,712
+
+提交次数709,663
+
+##### 简单dp
+
+基本dp算法实现，注意边界条件处理。
+
+~~~java
+ public int numDecodings(String s) {
+        int[] dp=new int[s.length()+1];
+        for(int i=1;i<dp.length;i++){
+            char ch=s.charAt(i-1);
+            if(ch>='1'&&ch<='9'){
+                dp[i]+=(i==1?1:dp[i-1]);
+            }
+            if(i>=2){
+                char preCh=s.charAt(i-2);
+                int val=(preCh-'0')*10+ch-'0';
+                if(val>=10&&val<=26){
+                    dp[i]+=(i-2==0?1:dp[i-2]);
+                }
+            }
+        }
+        return dp[s.length()];
+    }
+~~~
+
+
+
+#### [205. 同构字符串](https://leetcode.cn/problems/isomorphic-strings/)
+
+难度简单501
+
+给定两个字符串 `s` 和 `t` ，判断它们是否是同构的。
+
+如果 `s` 中的字符可以按某种映射关系替换得到 `t` ，那么这两个字符串是同构的。
+
+每个出现的字符都应当映射到另一个字符，同时不改变字符的顺序。不同字符不能映射到同一个字符上，相同字符只能映射到同一个字符上，字符可以映射到自己本身。
+
+ 
+
+**示例 1:**
+
+```
+输入：s = "egg", t = "add"
+输出：true
+```
+
+**示例 2：**
+
+```
+输入：s = "foo", t = "bar"
+输出：false
+```
+
+**示例 3：**
+
+```
+输入：s = "paper", t = "title"
+输出：true
+```
+
+ 
+
+**提示：**
+
+
+
+- `1 <= s.length <= 5 * 104`
+- `t.length == s.length`
+- `s` 和 `t` 由任意有效的 ASCII 字符组成
+
+通过次数161,028
+
+提交次数323,077
+
+##### 基本解法
+
+注意条件中的映射关系，由于字符都是ASCII码，可以使用int数组来做映射，由于题目要求字符映射必须是一一映射，为了避免多个字符映射到同一个字符，额外创建了一个数组，用来标记哪些字符已经被映射
+
+~~~java
+public boolean isIsomorphic(String s, String t) {
+        int[] mp=new int[129];
+        //标记对应val是否已经被映射
+        boolean[] visited=new boolean[129];
+        if(s.length()!=t.length()){
+            return false;
+        }
+        for(int i=0;i<s.length();i++){
+            char c1=s.charAt(i);
+            char c2=t.charAt(i);
+           	//c1没有映射，那么确保c1映射的c2没有跟以前的字符匹配，比如字符ac和bb。
+            if(mp[c1]==0){
+                if(visited[c2+1]){
+                    return false;
+                }
+                mp[c1]=c2+1;
+                visited[c2+1]=true;
+                continue;
+            }
+            if(mp[c1]!=c2+1){
+                return false;
+            }
+        }
+        return true;
+    }
+~~~
+
+
+
+##### 官方：双向map
+
+~~~java
+public boolean isIsomorphic(String s, String t) {
+        Map<Character, Character> s2t = new HashMap<Character, Character>();
+        Map<Character, Character> t2s = new HashMap<Character, Character>();
+        int len = s.length();
+        for (int i = 0; i < len; ++i) {
+            char x = s.charAt(i), y = t.charAt(i);
+            if ((s2t.containsKey(x) && s2t.get(x) != y) || (t2s.containsKey(y) && t2s.get(y) != x)) {
+                return false;
+            }
+            s2t.put(x, y);
+            t2s.put(y, x);
+        }
+        return true;
+    }
+~~~
+
+
+
+#### [159. 至多包含两个不同字符的最长子串](https://leetcode.cn/problems/longest-substring-with-at-most-two-distinct-characters/)
+
+难度中等180
+
+给定一个字符串 ***s\*** ，找出 **至多** 包含两个不同字符的最长子串 ***t\*** ，并返回该子串的长度。
+
+**示例 1:**
+
+```
+输入: "eceba"
+输出: 3
+解释: t 是 "ece"，长度为3。
+```
+
+**示例 2:**
+
+```
+输入: "ccaabbb"
+输出: 5
+解释: t 是 "aabbb"，长度为5。
+```
+
+通过次数25,286
+
+提交次数45,342
+
+##### 我的解法
+
+基本思路就是采用滑动窗口，维护一个最长的字符串在滑动窗口中，遍历过程中，移除左边界字符，然后更新最长字符串。难点在于更新字符串时候的边界处理。
+
+~~~java
+ public int lengthOfLongestSubstringTwoDistinct(String s) {
+        int ans=0;
+        int count=0;
+        if(s==null||s.length()==0){
+            return 0;
+        }
+        int i=0;
+        int start=0;
+        int[] mp=new int[128];
+        while(start<s.length()){
+            while(count<=2&&i<s.length()){
+                char ch=s.charAt(i);
+                mp[ch]++;
+                if(mp[ch]==1){
+                    count++;
+                }
+                i++;
+            }
+            if(i==s.length()){
+                if(count<=2){
+                    ans=Math.max(ans,i-start);
+                }else{
+                    ans=Math.max(ans,i-1-start);
+                }
+                break;
+            }
+            ans=Math.max(ans,i-1-start);
+            if(--mp[s.charAt(start)]==0){
+                count--;
+            }     
+            start++;   
+        }
+        return ans;
+    }
+~~~
+
+
+
+##### 官方解答
+
+~~~java
+public int lengthOfLongestSubstringTwoDistinct(String s) {
+    int n = s.length();
+    if (n < 3) return n;
+
+    // sliding window left and right pointers
+    int left = 0;
+    int right = 0;
+    // hashmap character -> its rightmost position 
+    // in the sliding window
+    HashMap<Character, Integer> hashmap = new HashMap<Character, Integer>();
+
+    int max_len = 2;
+
+    while (right < n) {
+      // slidewindow contains less than 3 characters
+      if (hashmap.size() < 3)
+        hashmap.put(s.charAt(right), right++);
+
+      // slidewindow contains 3 characters
+      if (hashmap.size() == 3) {
+        // delete the leftmost character
+        int del_idx = Collections.min(hashmap.values());
+        hashmap.remove(s.charAt(del_idx));
+        // move left pointer of the slidewindow
+        left = del_idx + 1;
+      }
+
+      max_len = Math.max(max_len, right - left);
+    }
+    return max_len;
+  }
+~~~
+
+
+
+##### 网上优秀解法
+
+~~~~java
+char[] s;
+    public int lengthOfLongestSubstringTwoDistinct(String s) {
+        this.s = s.toCharArray();
+        return lengthOfLongestSubstringTwoDistinct();
+    }
+    private int lengthOfLongestSubstringTwoDistinct() {
+        int n = s.length;
+        if (n <= 1) {
+            return n;
+        }
+        int[] map = new int[128];
+        int diffs = 0;
+        int L = 0, R = 0;
+        int maxLen = 0;
+        while (R < n) {
+            if (map[s[R]] == 0) {
+                diffs++;
+            }
+            map[s[R++]]++;
+            if (diffs <= 2) {
+                maxLen = Math.max(maxLen, R - L);
+            } else {
+                while (map[s[L]] > 1) {
+                    map[s[L++]]--;
+                }
+                map[s[L++]]--;
+                diffs--;
+            }
+        }
+        return maxLen;
+    }
+}
+~~~~
+
+
+
+##### 精简解法
+
+每次循环过程中，拓展左右边界。
+
+~~~java
+public int lengthOfLongestSubstringTwoDistinct(String s) {
+        int ans=0;
+        int count=0;
+        if(s==null||s.length()==0){
+            return 0;
+        }
+        int i=0;
+        int start=0;
+        int[] mp=new int[128];
+        while(i<s.length()){
+            if(count<=2){
+                char ch=s.charAt(i);
+                if(mp[ch]==0){
+                    count++;
+                }
+                mp[ch]++;
+            }
+            if(count<=2){
+                ans=Math.max(ans,i-start+1);
+                i++;
+            }else{
+                //拓展左边界
+                char rmCh=s.charAt(start);
+                mp[rmCh]--;
+                if(mp[rmCh]==0){
+                    count--;
+                }
+                start++;
+                //拓展右边界
+                if(count<=2){
+                    i++;
+                }
+            }
+        }
+        return ans;
+    }
+~~~
+
+
+
+#### [416. 分割等和子集](https://leetcode.cn/problems/partition-equal-subset-sum/)
+
+难度中等1439
+
+给你一个 **只包含正整数** 的 **非空** 数组 `nums` 。请你判断是否可以将这个数组分割成两个子集，使得两个子集的元素和相等。
+
+ 
+
+**示例 1：**
+
+```
+输入：nums = [1,5,11,5]
+输出：true
+解释：数组可以分割成 [1, 5, 5] 和 [11] 。
+```
+
+**示例 2：**
+
+```
+输入：nums = [1,2,3,5]
+输出：false
+解释：数组不能分割成两个元素和相等的子集。
+```
+
+ 
+
+**提示：**
+
+- `1 <= nums.length <= 200`
+- `1 <= nums[i] <= 100`
+
+通过次数307,551
+
+提交次数590,894
+
+
+
+##### 典型背包问题
+
+题目要求将数组进行二分，判断二分之后的数组和是否相等等价于从数组中查找数组和等于当前数组和一半的值是否存在。由题可知是一个典型背包问题，背包问题转移方程如下：（哪个作为一维数组都一样）**($i-1$表示不重复)**
+$$
+dp[i][w]=max(nums[i]+dp[i-1][w-weight[i]],dp[i-1][w])  //前提是weight[i]<=w
+$$
+如果以权重作为一维数组，那么方程式
+$$
+dp[w][i]=max(dp[w][i-1],dp[w-weight[i]][i-1]+nums[i])
+$$
+
+
+~~~java
+ int bag(int[] nums,int sum){
+        int[][] dp=new int[sum+1][nums.length+1];
+        int i,j;
+        for(i=0;i<=sum;i++){
+            for(j=0;j<=nums.length;j++){
+                if(i==0||j==0){
+                    dp[i][j]=0;
+                    continue;
+                }
+                int num=nums[j-1];
+                if(num>i){
+                    dp[i][j]=dp[i][j-1];
+                }else{
+                    dp[i][j]=Math.max(dp[i][j-1],num+dp[i-num][j-1]);
+                }
+            }
+        }
+        return dp[sum][nums.length];
+    }
+    public boolean canPartition(int[] nums) {
+        //背包问题
+        int sum=Arrays.stream(nums).sum();
+        if(sum!=sum/2*2){
+            return false;
+        }
+        Arrays.sort(nums);
+        int target=sum/2;
+        int maxWeight=bag(nums,target);
+        return target==maxWeight;
+    }
+~~~
+
+
+
+#### [219. 存在重复元素 II](https://leetcode.cn/problems/contains-duplicate-ii/)
+
+难度简单503
+
+给你一个整数数组 `nums` 和一个整数 `k` ，判断数组中是否存在两个 **不同的索引** `i` 和 `j` ，满足 `nums[i] == nums[j]` 且 `abs(i - j) <= k` 。如果存在，返回 `true` ；否则，返回 `false` 。
+
+ 
+
+**示例 1：**
+
+```
+输入：nums = [1,2,3,1], k = 3
+输出：true
+```
+
+**示例 2：**
+
+```
+输入：nums = [1,0,1,1], k = 1
+输出：true
+```
+
+**示例 3：**
+
+```
+输入：nums = [1,2,3,1,2,3], k = 2
+输出：false
+```
+
+ 
+
+ 
+
+**提示：**
+
+- `1 <= nums.length <= 105`
+- `-109 <= nums[i] <= 109`
+- `0 <= k <= 105`
+
+通过次数194,517
+
+提交次数438,263
+
+##### 滑动窗口
+
+维护一个窗口宽度为$k+1$的集合，然后顺序遍历，超过窗口的话，就将左边界移除。
+
+~~~java
+ public boolean containsNearbyDuplicate(int[] nums, int k) {
+        if(nums.length<2||k==0){
+            return false;
+        }
+        //k的窗口
+        Set<Integer> st=new HashSet();
+        int i=0;
+        while(i<nums.length&&i<=k){
+            if(st.contains(nums[i])){
+                return true;
+            }
+            st.add(nums[i]);
+            i++;
+        }
+        while(i<nums.length){
+            st.remove(nums[i-k-1]);
+            if(st.contains(nums[i])){
+                return true;
+            }
+            st.add(nums[i]);
+            i++;
+        }
+        return false;
+    }
+~~~
+
+
+
+##### 官方解法：map
+
+~~~java
+public boolean containsNearbyDuplicate(int[] nums, int k) {
+        Map<Integer, Integer> map = new HashMap<Integer, Integer>();
+        int length = nums.length;
+        for (int i = 0; i < length; i++) {
+            int num = nums[i];
+            if (map.containsKey(num) && i - map.get(num) <= k) {
+                return true;
+            }
+            map.put(num, i);
+        }
+        return false;
+}
+~~~
+
+
+
+#### [220. 存在重复元素 III](https://leetcode.cn/problems/contains-duplicate-iii/)
+
+难度中等639
+
+给你一个整数数组 `nums` 和两个整数 `k` 和 `t` 。请你判断是否存在 **两个不同下标** `i` 和 `j`，使得 `abs(nums[i] - nums[j]) <= t` ，同时又满足 `abs(i - j) <= k` 。
+
+如果存在则返回 `true`，不存在返回 `false`。
+
+ 
+
+**示例 1：**
+
+```
+输入：nums = [1,2,3,1], k = 3, t = 0
+输出：true
+```
+
+**示例 2：**
+
+```
+输入：nums = [1,0,1,1], k = 1, t = 2
+输出：true
+```
+
+**示例 3：**
+
+```
+输入：nums = [1,5,9,1,5,9], k = 2, t = 3
+输出：false
+```
+
+ 
+
+**提示：**
+
+- `0 <= nums.length <= 2 * 104`
+- `-231 <= nums[i] <= 231 - 1`
+- `0 <= k <= 104`
+- `0 <= t <= 231 - 1`
+
+通过次数84,010
+
+提交次数288,640
+
+
+
+##### 边界查找
+
+使用$TreeMap$来查找最接近的值，这种查找时间复杂度是$log(n)$，**注意整型数组越界问题。**
+
+~~~java
+  public boolean containsNearbyAlmostDuplicate(int[] nums, int k, int t) {
+        if(k==0||nums.length<2){
+            return false;
+        }
+        TreeSet<Integer> ts=new TreeSet();
+        int i=0;
+        while(i<nums.length){
+            if(i-k-1>=0){
+                ts.remove(nums[i-k-1]);
+            }
+            Integer next=ts.ceiling(nums[i]);
+            //注意整型越界问题
+            if(next!=null&& next-nums[i]>=0&&next-nums[i]<=t){
+                return true;
+            }
+            next=ts.floor(nums[i]);
+            if(next!=null&&nums[i]-next>=0&&nums[i]-next<=t){
+                return true;
+            }
+            ts.add(nums[i]);
+            i++;
+        }
+        return false;
+    }
+~~~
+
+
+
+##### 官方题解2：
+
+为了避免整型溢出，将数值转换成了$long$类型
+
+~~~java
+ public boolean containsNearbyAlmostDuplicate(int[] nums, int k, int t) {
+        int n = nums.length;
+        TreeSet<Long> set = new TreeSet<Long>();
+        for (int i = 0; i < n; i++) {
+            Long ceiling = set.ceiling((long) nums[i] - (long) t);
+            if (ceiling != null && ceiling <= (long) nums[i] + (long) t) {
+                return true;
+            }
+            set.add((long) nums[i]);
+            //上面的语句已经包含了n-k下标的数值，可以删除
+            if (i >= k) {
+                set.remove((long) nums[i - k]);
+            }
+        }
+        return false;
+    }
+~~~
+
+
+
+##### 官方解法三：桶排序
+
+保持桶的大小为$t+1$，比较滑动窗口范围内的数值是否落在相同的桶内或者相邻的桶内。
+
+注意桶的划分方法，当数值为负数时候，比如桶的宽度是10，划分区间是(-10,-1),(0,9),(10,20)，所以负数需要额外添加1，确保-10和-1落在一个桶里。
+
+~~~java
+ public boolean containsNearbyAlmostDuplicate(int[] nums, int k, int t) {
+        int n = nums.length;
+        Map<Long, Long> map = new HashMap<Long, Long>();
+        long w = (long) t + 1;
+        for (int i = 0; i < n; i++) {
+            long id = getID(nums[i], w);
+            if (map.containsKey(id)) {
+                return true;
+            }
+            if (map.containsKey(id - 1) && Math.abs(nums[i] - map.get(id - 1)) < w) {
+                return true;
+            }
+            if (map.containsKey(id + 1) && Math.abs(nums[i] - map.get(id + 1)) < w) {
+                return true;
+            }
+            map.put(id, (long) nums[i]);
+            if (i >= k) {
+                map.remove(getID(nums[i - k], w));
+            }
+        }
+        return false;
+    }
+
+    public long getID(long x, long w) {
+        if (x >= 0) {
+            return x / w;
+        }
+        return (x + 1) / w - 1;
+    }
+~~~
+
+
+
+#### [97. 交错字符串](https://leetcode.cn/problems/interleaving-string/)
+
+难度中等744
+
+给定三个字符串 `s1`、`s2`、`s3`，请你帮忙验证 `s3` 是否是由 `s1` 和 `s2` **交错** 组成的。
+
+两个字符串 `s` 和 `t` **交错** 的定义与过程如下，其中每个字符串都会被分割成若干 **非空** 子字符串：
+
+- `s = s1 + s2 + ... + sn`
+- `t = t1 + t2 + ... + tm`
+- `|n - m| <= 1`
+- **交错** 是 `s1 + t1 + s2 + t2 + s3 + t3 + ...` 或者 `t1 + s1 + t2 + s2 + t3 + s3 + ...`
+
+**注意：**`a + b` 意味着字符串 `a` 和 `b` 连接。
+
+ 
+
+**示例 1：**
+
+![img](https://assets.leetcode.com/uploads/2020/09/02/interleave.jpg)
+
+```
+输入：s1 = "aabcc", s2 = "dbbca", s3 = "aadbbcbcac"
+输出：true
+```
+
+**示例 2：**
+
+```
+输入：s1 = "aabcc", s2 = "dbbca", s3 = "aadbbbaccc"
+输出：false
+```
+
+**示例 3：**
+
+```
+输入：s1 = "", s2 = "", s3 = ""
+输出：true
+```
+
+ 
+
+**提示：**
+
+- `0 <= s1.length, s2.length <= 100`
+- `0 <= s3.length <= 200`
+- `s1`、`s2`、和 `s3` 都由小写英文字母组成
+
+ 
+
+**进阶：**您能否仅使用 `O(s2.length)` 额外的内存空间来解决它?
+
+通过次数93,577
+
+提交次数207,605
+
+##### 我的解法：dp
+
+比较容易想到dp算法，做了部分减枝。
+
+~~~java
+ int[] count(String[] stArr){
+        int[] mp=new int[26];
+        for(String st:stArr){
+            for(char ch:st.toCharArray()){
+                mp[ch-'a']++;
+            }
+        }
+        return mp;
+    }
+    public boolean isInterleave(String s1, String s2, String s3) {
+        if(s1.length()+s2.length()!=s3.length()){
+            return false;
+        }
+        //减枝
+        int[] combineMp=count(new String[]{s1,s2});
+        int[] s3Mp=count(new String[]{s3});
+        int i,j;
+        for(i=0;i<s3Mp.length;i++){
+            if(s3Mp[i]!=combineMp[i]){
+                return false;
+            }
+        }
+        boolean[][] dp=new boolean[s1.length()+1][s2.length()+1];
+        dp[0][0]=true;
+        for(i=1;i<=s1.length();i++){
+            char ch=s1.charAt(i-1);
+            dp[i][0]=dp[i-1][0]&&ch==s3.charAt(i-1);
+        }
+        for(j=1;j<=s2.length();j++){
+            char ch=s2.charAt(j-1);
+            dp[0][j]=dp[0][j-1]&&ch==s3.charAt(j-1);
+        }
+        for(i=1;i<=s1.length();i++){
+            char c1=s1.charAt(i-1);
+            for(j=1;j<=s2.length();j++){
+                char c2=s2.charAt(j-1);
+                char c3=s3.charAt(i+j-1);
+                dp[i][j]=(c1==c3&&dp[i-1][j])||(c2==c3&&dp[i][j-1]);
+            }
+        }
+        return dp[s1.length()][s2.length()];
+    }
+~~~
+
+
+
+##### 官方解法二：滚动数组优化
+
+~~~java
+ public boolean isInterleave(String s1, String s2, String s3) {
+        int n = s1.length(), m = s2.length(), t = s3.length();
+
+        if (n + m != t) {
+            return false;
+        }
+
+        boolean[] f = new boolean[m + 1];
+
+        f[0] = true;
+        for (int i = 0; i <= n; ++i) {
+            for (int j = 0; j <= m; ++j) {
+                int p = i + j - 1;
+                if (i > 0) {
+                    f[j] = f[j] && s1.charAt(i - 1) == s3.charAt(p);
+                }
+                if (j > 0) {
+                    f[j] = f[j] || (f[j - 1] && s2.charAt(j - 1) == s3.charAt(p));
+                }
+            }
+        }
+
+        return f[m];
+    }
+~~~
+
+
+
+#### [60. 排列序列](https://leetcode.cn/problems/permutation-sequence/)
+
+难度困难695
+
+给出集合 `[1,2,3,...,n]`，其所有元素共有 `n!` 种排列。
+
+按大小顺序列出所有排列情况，并一一标记，当 `n = 3` 时, 所有排列如下：
+
+1. `"123"`
+2. `"132"`
+3. `"213"`
+4. `"231"`
+5. `"312"`
+6. `"321"`
+
+给定 `n` 和 `k`，返回第 `k` 个排列。
+
+ 
+
+**示例 1：**
+
+```
+输入：n = 3, k = 3
+输出："213"
+```
+
+**示例 2：**
+
+```
+输入：n = 4, k = 9
+输出："2314"
+```
+
+**示例 3：**
+
+```
+输入：n = 3, k = 1
+输出："123"
+```
+
+ 
+
+**提示：**
+
+- `1 <= n <= 9`
+- `1 <= k <= n!`
+
+通过次数112,629
+
+提交次数211,653
+
+##### 直接求解
+
+跟之前查找全排列的下一个数值类似。
+
+~~~java
+  void swapInt(int[] nums,int left,int right){
+        int tmp=nums[left];
+        nums[left]=nums[right];
+        nums[right]=tmp;
+    }
+    void reverse(int[] nums,int left,int right){
+        while(left<right){
+            swapInt(nums,left,right);
+            left++;
+            right--;
+        }
+    }
+    void nextLarge(int[] nums){
+        //查找当前数值的下一个大的数
+        int i=nums.length-1,j;
+        while(i-1>=0&&nums[i-1]>=nums[i]){
+            i--;
+        }
+        if(i>=1){
+            j=nums.length-1;
+            while(nums[j]<=nums[i-1]){
+                j--;
+            }
+            swapInt(nums,i-1,j);
+        }
+        reverse(nums,i,nums.length-1);
+    }
+    public String getPermutation(int n, int k) {
+        int[] nums=new int[n];
+        for(int i=1;i<=n;i++){
+            nums[i-1]=i;
+        }
+        k--;
+        while(k>0){
+            nextLarge(nums);
+            k--;
+        }
+        StringBuilder ans=new StringBuilder();
+        for(int num:nums){
+            ans.append(num);
+        }
+        return ans.toString();
+    }
+~~~
+
+
+
+##### 官方解答：缩放
+
+基于以下的结论
+
+- 对于n个不同的元素（例如1,2,3...n），它们可以组成的排列总数目是$n!$
+
+按照全排列的首个元素$a1$为例
+
+- a1为1的个数是$(n-1)!$
+- a1为2的个数是$(n-1)!$
+- a1为n的个数是$(n-1)!$
+
+那么由此可以得到首个元素和$k$的关系
+$$
+a_{1}=\lfloor\frac{k-1}{(n-1)!}\rfloor+1
+$$
+
+
+~~~java
+public String getPermutation(int n, int k) {
+        int[] factorial = new int[n];
+        factorial[0] = 1;
+        for (int i = 1; i < n; ++i) {
+            factorial[i] = factorial[i - 1] * i;
+        }
+
+        --k;
+        StringBuffer ans = new StringBuffer();
+        int[] valid = new int[n + 1];
+        Arrays.fill(valid, 1);
+        for (int i = 1; i <= n; ++i) {
+            int order = k / factorial[n - i] + 1;
+            //order对应该序列位的数值顺序
+            for (int j = 1; j <= n; ++j) {
+                order -= valid[j];
+                if (order == 0) {
+                    ans.append(j);
+                    valid[j] = 0;
+                    break;
+                }
+            }
+            k %= factorial[n - i];
+        }
+        return ans.toString();
+    }
+~~~
+
+
+
+#### [83. 删除排序链表中的重复元素](https://leetcode.cn/problems/remove-duplicates-from-sorted-list/)
+
+难度简单835
+
+给定一个已排序的链表的头 `head` ， *删除所有重复的元素，使每个元素只出现一次* 。返回 *已排序的链表* 。
+
+ 
+
+**示例 1：**
+
+![img](https://assets.leetcode.com/uploads/2021/01/04/list1.jpg)
+
+```
+输入：head = [1,1,2]
+输出：[1,2]
+```
+
+**示例 2：**
+
+![img](https://assets.leetcode.com/uploads/2021/01/04/list2.jpg)
+
+```
+输入：head = [1,1,2,3,3]
+输出：[1,2,3]
+```
+
+ 
+
+**提示：**
+
+- 链表中节点数目在范围 `[0, 300]` 内
+- `-100 <= Node.val <= 100`
+- 题目数据保证链表已经按升序 **排列**
+
+通过次数468,515
+
+提交次数875,992
+
+##### 直接求解
+
+~~~java
+public ListNode deleteDuplicates(ListNode head) {
+        ListNode p=head;
+        if(p==null){
+            return p;
+        }
+        while(p.next!=null){
+            if(p.val==p.next.val){
+                ListNode tmp=p.next;
+                p.next=p.next.next;
+                tmp=null;
+                continue;
+            }
+            p=p.next;
+        }
+        return head;
+    }
+~~~
+
+
+
+#### [89. 格雷编码](https://leetcode.cn/problems/gray-code/)
+
+难度中等528
+
+**n 位格雷码序列** 是一个由 `2n` 个整数组成的序列，其中：
+
+- 每个整数都在范围 `[0, 2n - 1]` 内（含 `0` 和 `2n - 1`）
+- 第一个整数是 `0`
+- 一个整数在序列中出现 **不超过一次**
+- 每对 **相邻** 整数的二进制表示 **恰好一位不同** ，且
+- **第一个** 和 **最后一个** 整数的二进制表示 **恰好一位不同**
+
+给你一个整数 `n` ，返回任一有效的 **n 位格雷码序列** 。
+
+ 
+
+**示例 1：**
+
+```
+输入：n = 2
+输出：[0,1,3,2]
+解释：
+[0,1,3,2] 的二进制表示是 [00,01,11,10] 。
+- 00 和 01 有一位不同
+- 01 和 11 有一位不同
+- 11 和 10 有一位不同
+- 10 和 00 有一位不同
+[0,2,3,1] 也是一个有效的格雷码序列，其二进制表示是 [00,10,11,01] 。
+- 00 和 10 有一位不同
+- 10 和 11 有一位不同
+- 11 和 01 有一位不同
+- 01 和 00 有一位不同
+```
+
+**示例 2：**
+
+```
+输入：n = 1
+输出：[0,1]
+```
+
+ 
+
+**提示：**
+
+- `1 <= n <= 16`
+
+通过次数100,861
+
+提交次数134,817
+
+##### 观察数值
+
+通过观察有效的格雷编码查找规律，比如以下，$n$可以由于前面$n-1$个格雷码逆序构成
+
+~~~
+n=1
+0,1
+n=2
+11,10
+n=3
+110,111,101,100
+~~~
+
+~~~java
+public List<Integer> grayCode(int n) {
+        //尝试画出常见的n=3的格雷编码，观察规律
+        //n层的值可以由于1-n-1层的值逆向推出
+        List<Integer> ans=new ArrayList();
+        ans.add(0);
+        ans.add(1);
+        int k=1;
+        int base=1;
+        while(++k<=n){
+            base*=2;
+            int levelSize=ans.size();
+            for(int i=levelSize-1;i>=0;i--){
+                int num=base+ans.get(i);
+                ans.add(num);
+            }
+        }
+        return ans;
+    }
+~~~
+
+
+
+#### [74. 搜索二维矩阵](https://leetcode.cn/problems/search-a-2d-matrix/)
+
+难度中等695
+
+编写一个高效的算法来判断 `m x n` 矩阵中，是否存在一个目标值。该矩阵具有如下特性：
+
+- 每行中的整数从左到右按升序排列。
+- 每行的第一个整数大于前一行的最后一个整数。
+
+ 
+
+**示例 1：**
+
+![img](https://assets.leetcode.com/uploads/2020/10/05/mat.jpg)
+
+```
+输入：matrix = [[1,3,5,7],[10,11,16,20],[23,30,34,60]], target = 3
+输出：true
+```
+
+**示例 2：**
+
+![img](https://assets.leetcode-cn.com/aliyun-lc-upload/uploads/2020/11/25/mat2.jpg)
+
+```
+输入：matrix = [[1,3,5,7],[10,11,16,20],[23,30,34,60]], target = 13
+输出：false
+```
+
+ 
+
+**提示：**
+
+- `m == matrix.length`
+- `n == matrix[i].length`
+- `1 <= m, n <= 100`
+- `-104 <= matrix[i][j], target <= 104`
+
+通过次数257,907
+
+提交次数537,922
+
+##### 二分查找
+
+题目描述可知，将二维矩阵按照行展开就是一个升序的数组，所以可以直接用二分查找
+
+~~~java
+public boolean searchMatrix(int[][] matrix, int target) {
+        //二分搜索，将二维矩阵搜索转换成一维矩阵
+        int m=matrix.length;
+        int n=matrix[0].length;
+        int low=0,high=m*n-1;
+        while(low<=high){
+            int mid=(high+low)/2;
+            int x=mid/n;
+            int y=mid%n;
+            if(matrix[x][y]==target){
+                return true;
+            }else if(matrix[x][y]>target){
+                high=mid-1;
+            }else{
+                low=mid+1;
+            }
+        }
+        return false;
+    }
+~~~
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# SQL 查询
+
+## [178. 分数排名](https://leetcode.cn/problems/rank-scores/)
+
+难度中等955收藏分享切换为英文接收动态反馈
+
+SQL架构
+
+表: `Scores`
+
+```
++-------------+---------+
+| Column Name | Type    |
++-------------+---------+
+| id          | int     |
+| score       | decimal |
++-------------+---------+
+Id是该表的主键。
+该表的每一行都包含了一场比赛的分数。Score是一个有两位小数点的浮点值。
+```
+
+ 
+
+编写 SQL 查询对分数进行排序。排名按以下规则计算:
+
+- 分数应按从高到低排列。
+- 如果两个分数相等，那么两个分数的排名应该相同。
+- 在排名相同的分数后，排名数应该是下一个连续的整数。换句话说，排名之间不应该有空缺的数字。
+
+按 `score` 降序返回结果表。
+
+查询结果格式如下所示。
+
+ 
+
+**示例 1:**
+
+```
+输入: 
+Scores 表:
++----+-------+
+| id | score |
++----+-------+
+| 1  | 3.50  |
+| 2  | 3.65  |
+| 3  | 4.00  |
+| 4  | 3.85  |
+| 5  | 4.00  |
+| 6  | 3.65  |
++----+-------+
+输出: 
++-------+------+
+| score | rank |
++-------+------+
+| 4.00  | 1    |
+| 4.00  | 1    |
+| 3.85  | 2    |
+| 3.65  | 3    |
+| 3.65  | 3    |
+| 3.50  | 4    |
++-------+------+
+```
+
+通过次数160,284
+
+提交次数264,057
+
+### 解法一：
+
+~~~sql
+select a.Score as score,
+    (select count(distinct b.Score) from Scores as b where b.Score>=a.Score) as `rank`
+from Scores as a
+order by a.Score DESC
+~~~
+
+
+
+
+
+## [181. 超过经理收入的员工](https://leetcode.cn/problems/employees-earning-more-than-their-managers/)
+
+难度简单523收藏分享切换为英文接收动态反馈
+
+SQL架构
+
+表：`Employee` 
+
+```
++-------------+---------+
+| Column Name | Type    |
++-------------+---------+
+| id          | int     |
+| name        | varchar |
+| salary      | int     |
+| managerId   | int     |
++-------------+---------+
+Id是该表的主键。
+该表的每一行都表示雇员的ID、姓名、工资和经理的ID。
+```
+
+ 
+
+编写一个SQL查询来查找收入比经理高的员工。
+
+以 **任意顺序** 返回结果表。
+
+查询结果格式如下所示。
+
+ 
+
+**示例 1:**
+
+```
+输入: 
+Employee 表:
++----+-------+--------+-----------+
+| id | name  | salary | managerId |
++----+-------+--------+-----------+
+| 1  | Joe   | 70000  | 3         |
+| 2  | Henry | 80000  | 4         |
+| 3  | Sam   | 60000  | Null      |
+| 4  | Max   | 90000  | Null      |
++----+-------+--------+-----------+
+输出: 
++----------+
+| Employee |
++----------+
+| Joe      |
++----------+
+解释: Joe 是唯一挣得比经理多的雇员。
+```
+
+通过次数222,053
+
+提交次数321,074
+
+### 解法一
+
+~~~sql
+select a.name `Employee` 
+from Employee a ,Employee b
+where a.managerId=b.id and a.salary>b.salary;
+~~~
+
+
+
+### 解法二
+
+~~~java
+SELECT
+     a.NAME AS Employee
+FROM Employee AS a JOIN Employee AS b
+     ON a.ManagerId = b.Id
+     AND a.Salary > b.Salary
+~~~
+
+
+
+## [176. 第二高的薪水](https://leetcode.cn/problems/second-highest-salary/)
+
+难度中等1104收藏分享切换为英文接收动态反馈
+
+SQL架构
+
+`Employee` 表：
+
+```
++-------------+------+
+| Column Name | Type |
++-------------+------+
+| id          | int  |
+| salary      | int  |
++-------------+------+
+id 是这个表的主键。
+表的每一行包含员工的工资信息。
+```
+
+ 
+
+编写一个 SQL 查询，获取并返回 `Employee` 表中第二高的薪水 。如果不存在第二高的薪水，查询应该返回 `null` 。
+
+查询结果如下例所示。
+
+ 
+
+**示例 1：**
+
+```
+输入：
+Employee 表：
++----+--------+
+| id | salary |
++----+--------+
+| 1  | 100    |
+| 2  | 200    |
+| 3  | 300    |
++----+--------+
+输出：
++---------------------+
+| SecondHighestSalary |
++---------------------+
+| 200                 |
++---------------------+
+```
+
+**示例 2：**
+
+```
+输入：
+Employee 表：
++----+--------+
+| id | salary |
++----+--------+
+| 1  | 100    |
++----+--------+
+输出：
++---------------------+
+| SecondHighestSalary |
++---------------------+
+| null                |
++---------------------+
+```
+
+通过次数331,613
+
+提交次数924,651
+
+### 解法一
+
+~~~sql
+select IFNULL((select distinct salary from Employee order by salary desc limit 1,1 ),NULL) SecondHighestSalary ;
+~~~
+
+### 解法二
+
+~~~sql
+SELECT
+    (SELECT DISTINCT
+            Salary
+        FROM
+            Employee
+        ORDER BY Salary DESC
+        LIMIT 1 OFFSET 1) AS SecondHighestSalary
+~~~
+
+
+
+## [184. 部门工资最高的员工](https://leetcode.cn/problems/department-highest-salary/)
+
+难度中等537收藏分享切换为英文接收动态反馈
+
+SQL架构
+
+表： `Employee`
+
+```
++--------------+---------+
+| 列名          | 类型    |
++--------------+---------+
+| id           | int     |
+| name         | varchar |
+| salary       | int     |
+| departmentId | int     |
++--------------+---------+
+id是此表的主键列。
+departmentId是Department表中ID的外键。
+此表的每一行都表示员工的ID、姓名和工资。它还包含他们所在部门的ID。
+```
+
+ 
+
+表： `Department`
+
+```
++-------------+---------+
+| 列名         | 类型    |
++-------------+---------+
+| id          | int     |
+| name        | varchar |
++-------------+---------+
+id是此表的主键列。
+此表的每一行都表示一个部门的ID及其名称。
+```
+
+ 
+
+编写SQL查询以查找每个部门中薪资最高的员工。
+按 **任意顺序** 返回结果表。
+查询结果格式如下例所示。
+
+ 
+
+**示例 1:**
+
+```
+输入：
+Employee 表:
++----+-------+--------+--------------+
+| id | name  | salary | departmentId |
++----+-------+--------+--------------+
+| 1  | Joe   | 70000  | 1            |
+| 2  | Jim   | 90000  | 1            |
+| 3  | Henry | 80000  | 2            |
+| 4  | Sam   | 60000  | 2            |
+| 5  | Max   | 90000  | 1            |
++----+-------+--------+--------------+
+Department 表:
++----+-------+
+| id | name  |
++----+-------+
+| 1  | IT    |
+| 2  | Sales |
++----+-------+
+输出：
++------------+----------+--------+
+| Department | Employee | Salary |
++------------+----------+--------+
+| IT         | Jim      | 90000  |
+| Sales      | Henry    | 80000  |
+| IT         | Max      | 90000  |
++------------+----------+--------+
+解释：Max 和 Jim 在 IT 部门的工资都是最高的，Henry 在销售部的工资最高。
+```
+
+通过次数138,060
+
+提交次数276,977
+
+### 解法一
+
+~~~sql
+select d1.name Department, e1.name Employee, e1.salary
+from Department d1,Employee e1,(select max(salary) sl,departmentId from Employee group by departmentId)e2
+where e1.departmentId=d1.id and e1.departmentId=e2.departmentId and e1.salary=e2.sl
+~~~
+
+
+
+### 解法二
+
+~~~sql
+SELECT
+    Department.name AS 'Department',
+    Employee.name AS 'Employee',
+    Salary
+FROM
+    Employee
+        JOIN
+    Department ON Employee.DepartmentId = Department.Id
+WHERE
+    (Employee.DepartmentId , Salary) IN
+    (   SELECT
+            DepartmentId, MAX(Salary)
+        FROM
+            Employee
+        GROUP BY DepartmentId
+	)
+
+
+~~~
+
+
+
+## [196. 删除重复的电子邮箱](https://leetcode.cn/problems/delete-duplicate-emails/)
+
+难度简单557收藏分享切换为英文接收动态反馈
+
+SQL架构
+
+表: `Person`
+
+```
++-------------+---------+
+| Column Name | Type    |
++-------------+---------+
+| id          | int     |
+| email       | varchar |
++-------------+---------+
+id是该表的主键列。
+该表的每一行包含一封电子邮件。电子邮件将不包含大写字母。
+```
+
+ 
+
+编写一个 SQL **删除语句**来 **删除** 所有重复的电子邮件，只保留一个id最小的唯一电子邮件。
+
+以 **任意顺序** 返回结果表。 （**注意**： 仅需要写删除语句，将自动对剩余结果进行查询）
+
+查询结果格式如下所示。
+
+ 
+
+ 
+
+**示例 1:**
+
+```
+输入: 
+Person 表:
++----+------------------+
+| id | email            |
++----+------------------+
+| 1  | john@example.com |
+| 2  | bob@example.com  |
+| 3  | john@example.com |
++----+------------------+
+输出: 
++----+------------------+
+| id | email            |
++----+------------------+
+| 1  | john@example.com |
+| 2  | bob@example.com  |
++----+------------------+
+解释: john@example.com重复两次。我们保留最小的Id = 1。
+```
+
+通过次数155,727
+
+提交次数229,810
+
+### 直接求解
+
+注意表如果有别名，删除的时候带上别名
+
+~~~sql
+DELETE p1 from Person p1
+,(select min(id) min_id,email from Person 
+group by email
+)p2
+where p1.email=p2.email and p1.id>p2.min_id
+~~~
+
+
+
+### 解法二
+
+~~~sql
+DELETE p1 FROM Person p1,
+    Person p2
+WHERE
+    p1.Email = p2.Email AND p1.Id > p2.Id
+~~~
+
+
+
+
+
+## [177. 第N高的薪水](https://leetcode.cn/problems/nth-highest-salary/)
+
+难度中等610收藏分享切换为英文接收动态反馈
+
+SQL架构
+
+表: `Employee`
+
+```
++-------------+------+
+| Column Name | Type |
++-------------+------+
+| id          | int  |
+| salary      | int  |
++-------------+------+
+Id是该表的主键列。
+该表的每一行都包含有关员工工资的信息。
+```
+
+ 
+
+编写一个SQL查询来报告 `Employee` 表中第 `n` 高的工资。如果没有第 `n` 个最高工资，查询应该报告为 `null` 。
+
+查询结果格式如下所示。
+
+ 
+
+**示例 1:**
+
+```
+输入: 
+Employee table:
++----+--------+
+| id | salary |
++----+--------+
+| 1  | 100    |
+| 2  | 200    |
+| 3  | 300    |
++----+--------+
+n = 2
+输出: 
++------------------------+
+| getNthHighestSalary(2) |
++------------------------+
+| 200                    |
++------------------------+
+```
+
+**示例 2:**
+
+```
+输入: 
+Employee 表:
++----+--------+
+| id | salary |
++----+--------+
+| 1  | 100    |
++----+--------+
+n = 2
+输出: 
++------------------------+
+| getNthHighestSalary(2) |
++------------------------+
+| null                   |
++------------------------+
+```
+
+通过次数170,255
+
+提交次数364,988
+
+### 解答
+
+~~~sql
+CREATE FUNCTION getNthHighestSalary(N INT) RETURNS INT
+BEGIN
+  RETURN (
+      # Write your MySQL query statement below.
+      select salary from
+        (select  e1.salary, count(1) cnt
+            from(select distinct salary from Employee) e1,(select distinct salary from Employee) e2
+        where e1.salary<=e2.salary
+        group by e1.salary
+        having cnt=N
+        )e3
+       
+      
+  );
+END
+~~~
+
+
+
+### 解法二
+
+~~~sql
+CREATE FUNCTION getNthHighestSalary(N INT) RETURNS INT
+BEGIN
+  RETURN (
+      # Write your MySQL query statement below.
+      SELECT 
+          DISTINCT e.salary
+      FROM 
+          employee e
+      WHERE 
+          (SELECT count(DISTINCT salary) FROM employee WHERE salary>e.salary) = N-1
+  );
+END
+~~~
+
